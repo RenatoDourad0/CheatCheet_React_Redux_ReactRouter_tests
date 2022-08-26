@@ -2,10 +2,10 @@ falta actions assincronas, testes, resumo de importacoes
 # Criando um projeto com React, Redux e ReactRouter
 
 ## Índice
-  * [Instalando e iniciando o React](##Instalando-e-iniciando-o-React)
-  * [Instalando o Redux](##Instalando-o-Redux)
-  * [Instalando e iniciando o ReactRouter](##Instalando-e-iniciando-o-ReactRouter)
-  * [Iniciando o Redux](##Iniciando-o-Redux)
+  * [Instalando e iniciando o React](#Instalando-e-iniciando-o-React)
+  * [Instalando o Redux](#Instalando-o-Redux)
+  * [Instalando e iniciando o ReactRouter](#Instalando-e-iniciando-o-ReactRouter)
+  * [Iniciando o Redux](#Iniciando-o-Redux)
     * [Criar no diretório `redux`](###Criar-no-diretório-`redux`)
     * [Dentro do diretório `reducers`]()
     * [Dentro do diretório `store`]()
