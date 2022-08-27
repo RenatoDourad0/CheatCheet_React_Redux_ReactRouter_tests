@@ -1,6 +1,5 @@
-falta testes, resumo de diretrizes redux
 # Criando um projeto com React, Redux e ReactRouter
-
+  [Escrito por Renato Campos](https://github.com/RenatoDourad0)
 ## Índice
   * [Instalando e iniciando o React](#Instalando-e-iniciando-o-React)
   * [Instalando o Redux](#Instalando-o-Redux)
