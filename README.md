@@ -325,11 +325,17 @@ const mapDispatchToProps = dispatch => ({
     * Dentro do diretório do projeto: ``` npm install gh-pages ```
     * No arquivo ``` package.json ``` alterar:
       * ``` "homepage" : "https://{username_github}.github.io/{nome_do_diretório}" ```
-      * "scripts": {
+      * Na propriedade `scripts`:
+
+```javascript
+// package.json
+"scripts": {
           "predeploy" : "npm run build",
           "deploy" : "gh-pages -d build"
         }
-    * ``` npm run deploy ```
+```
+  * 
+    * ```npm run deploy```
     * Em caso de erro ``` gh ... já existente ``` apagar a pasta `gh-pages` em ``` node-modules/.cache ```
 ### ReactRouter
 1. Istalação: ``` npm install --save react-router-dom@v5 ```
