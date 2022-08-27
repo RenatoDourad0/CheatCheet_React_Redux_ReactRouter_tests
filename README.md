@@ -316,10 +316,23 @@ const mapDispatchToProps = dispatch => ({
 1. Istalação: ``` npx create-react-app nome-do-projeto ``` 
 2. Importação: 
   * ``` import React from 'react' ```
-  * ```import React, { Component } from 'react'; ```
+  * ``` import React, { Component } from 'react'; ```
 3. Diretrizes:
-  * Deploy:
-
+  * Start: ``` npm start ```
+  * Test: ``` npm test ```
+  * Build: ``` npm run build ```
+  * Deploy com gh-pages: 
+    * Dentro do diretório do projeto: ``` npm install gh-pages ```
+    * No arquivo ``` package.json ``` alterar:
+      * ```"homepage" : "https://{username_github}.github.io/{nome_do_diretório}"```
+      * ```javascript
+       "scripts": {
+          "predeploy" : "npm run build",
+          "deploy" : "gh-pages -d build"
+        } 
+        ```
+    * ```npm run deploy ````
+    * Em caso de erro ``` gh ... já existente ``` apagar a pasta `gh-pages` em ``` node-modules/.cache ```
 ### ReactRouter
 1. Istalação: ``` npm install --save react-router-dom@v5 ```
 2. Importação: ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
@@ -337,8 +350,9 @@ const mapDispatchToProps = dispatch => ({
 ## Ambiente de testes:
 
 ### Instalações
+  1. com o ```npm create-react-app ``` a RTL será instalada
 
-<img src='./cheat-sheet-RTL'>
+
 
 
 
