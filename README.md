@@ -338,6 +338,8 @@ const mapDispatchToProps = dispatch => ({
 
 ### Instalações
 
+<img src='./cheat-sheet-RTL'>
+
 
 
 
