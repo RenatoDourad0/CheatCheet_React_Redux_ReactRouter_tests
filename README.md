@@ -40,8 +40,7 @@ falta actions assincronas, testes, resumo de importacoes
 ## Instalando e iniciando o ReactRouter
 
 1. ``` npm install react-router-dom@v5 ```
-2. importação: ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
-3. no arquivo `index.js` importar `BrowserRouter` e envolver o `App`.
+2. no arquivo `index.js` importar `BrowserRouter` e envolver o `App`.
 
 ```javascript
 // src/index.js
@@ -60,8 +59,8 @@ root.render(
 );
 ```
 
-4. No diretório `src/components` criar o arquivo `Routes.js` e importar `Route` e `Switch`
-5. Importar componentes/páginas referentes as rotas
+3. No diretório `src/components` criar o arquivo `Routes.js` e importar `Route` e `Switch`
+4. Importar componentes/páginas referentes as rotas
 ```javascript
 // src/components/Routes.js
 import { Route, Switch } from 'react-router-dom';
@@ -307,11 +306,19 @@ const mapDispatchToProps = dispatch => ({
 ## Resumo de instalações, importações e organização diretórios:
 
 ### React
+1. Istalação:
+2. Importação: 
+3. Organização:
 
 ### ReactRouter
+1. Istalação:
+2. Importação: ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
+3. Organização:
 
 ### Redux
-
+1. Istalação:
+2. Importação:
+3. Organização:
 
 ## Ambiente de testes:
 
