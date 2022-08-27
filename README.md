@@ -1,4 +1,4 @@
-falta testes, resumo de importacoes
+falta testes, resumo de diretrizes redux
 # Criando um projeto com React, Redux e ReactRouter
 
 ## Índice
@@ -316,7 +316,9 @@ const mapDispatchToProps = dispatch => ({
 1. Istalação: ``` npx create-react-app nome-do-projeto ``` 
 2. Importação: 
   * ``` import React from 'react' ```
-  * ``` import React, { Component } from 'react'; ```
+  * ```import ReactDOM from 'react-dom' ```
+  * ``` import { Component, ... } from 'react'; ```
+  * ``` import PropTypes from 'prop-types' ```
 3. Diretrizes:
   * Start: ``` npm start ```
   * Test: ``` npm test ```
@@ -337,24 +339,26 @@ const mapDispatchToProps = dispatch => ({
   * 
     * ```npm run deploy```
     * Em caso de erro ``` gh ... já existente ``` apagar a pasta `gh-pages` em ``` node-modules/.cache ```
+
 ### ReactRouter
 1. Istalação: ``` npm install --save react-router-dom@v5 ```
 2. Importação: ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
 3. Diretrizes: 
-  *  No arquivo `src/index.js` importar `BrowserRouter` e envolver o `App`.
+  *  No arquivo `src/index.js` importar `BrowserRouter` e envolver o componente`App`.
   *  No diretório `src/components` criar o arquivo `Routes.js` e importar `Route` e `Switch`
   * No arquivo `src/App.js` importar e renderizar o componente `Routes`
 
 ### Redux
-1. Istalação:
-2. Importação:
-3. Organização:
+1. Istalação: ``` npm install redux react-redux ```
+2. Importação: ```import { connect, Provider } from 'react-redux'```
+3. Diretrizes: 
+  * Verificar o passo a passo [Iniciando o Redux](#Iniciando-o-Redux)
 
 
 ## Ambiente de testes:
 
 ### Instalações
-  1. com o ```npm create-react-app ``` a RTL será instalada
+  1. com o ```npm create-react-app ``` a RTL será instalada. Caso seja necessário: ``` npm install --save-dev @testing-library/react ```  // tem que ter versão?
 
 
 
