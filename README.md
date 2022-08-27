@@ -315,18 +315,18 @@ const mapDispatchToProps = dispatch => ({
 ### React
 1. Istalação: ``` npx create-react-app nome-do-projeto ``` 
 2. Importação: 
-  1. ``` import React from 'react' ```
-  2. ```import React, { Component } from 'react'; ```
+  * ``` import React from 'react' ```
+  * ```import React, { Component } from 'react'; ```
 3. Diretrizes:
-  1. Deploy:
+  * Deploy:
 
 ### ReactRouter
 1. Istalação: ``` npm install --save react-router-dom@v5 ```
 2. Importação: ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
 3. Diretrizes: 
-  1.  No arquivo `src/index.js` importar `BrowserRouter` e envolver o `App`.
-  2.  No diretório `src/components` criar o arquivo `Routes.js` e importar `Route` e `Switch`
-  3. No arquivo `src/App.js` importar e renderizar o componente `Routes`
+  *  No arquivo `src/index.js` importar `BrowserRouter` e envolver o `App`.
+  *  No diretório `src/components` criar o arquivo `Routes.js` e importar `Route` e `Switch`
+  * No arquivo `src/App.js` importar e renderizar o componente `Routes`
 
 ### Redux
 1. Istalação:
