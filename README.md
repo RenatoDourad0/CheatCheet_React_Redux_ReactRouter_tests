@@ -13,7 +13,7 @@ falta actions assincronas, testes, resumo de importacoes
         * [Caso especial - Actions assíncronas](#Caso-especial---Actions-assíncronas)
           * No arquivo `src/redux/index.js`
           * No arquivo `src/redux/actions/{sua_action}`
-    * [No arquivo `src/index.js`](#No-arquivo-src-index-js)
+    * [No arquivo `src/index.js`](#No-arquivo-src-index-.-js)
     * [Nos componentes que vão ler o estado](#Nos-componentes-que-vão-ler-o-estado)
     * [Nos componentes que vão modificar o estado](#Nos-componentes-que-vão-modificar-o-estado)
   * [Resumo de instalações, importações e organização diretórios](#Resumo-de-instalações,-importações-e-organização-diretórios)
