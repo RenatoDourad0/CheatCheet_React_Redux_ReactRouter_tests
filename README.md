@@ -39,7 +39,7 @@ falta testes, resumo de importacoes
 
 ## Instalando e iniciando o ReactRouter
 
-1. ``` npm install react-router-dom@v5 ```
+1. ``` npm install --save react-router-dom@v5 ```
 2. no arquivo `index.js` importar `BrowserRouter` e envolver o `App`.
 
 ```javascript
@@ -309,24 +309,34 @@ const mapDispatchToProps = dispatch => ({
 
 5. O componente agora pode alterar o estado do redux através das props definidas na função `mapDispatchToProps`
 
+
 ## Resumo de instalações, importações e organização diretórios:
 
 ### React
-1. Istalação:
+1. Istalação: ``` npx create-react-app nome-do-projeto ``` 
 2. Importação: 
-3. Organização:
+  1. ``` import React from 'react' ```
+  2. ```import React, { Component } from 'react'; ```
+3. Diretrizes:
+  1. Deploy:
 
 ### ReactRouter
-1. Istalação:
+1. Istalação: ``` npm install --save react-router-dom@v5 ```
 2. Importação: ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
-3. Organização:
+3. Diretrizes: 
+  1.  No arquivo `src/index.js` importar `BrowserRouter` e envolver o `App`.
+  2.  No diretório `src/components` criar o arquivo `Routes.js` e importar `Route` e `Switch`
+  3. No arquivo `src/App.js` importar e renderizar o componente `Routes`
 
 ### Redux
 1. Istalação:
 2. Importação:
 3. Organização:
 
+
 ## Ambiente de testes:
+
+### Instalações
 
 
 
