@@ -1,4 +1,4 @@
-falta actions assincronas, testes, resumo de importacoes
+falta testes, resumo de importacoes
 # Criando um projeto com React, Redux e ReactRouter
 
 ## Índice
@@ -106,7 +106,7 @@ export default App;
 ### Dentro do diretório `reducers`
 1. Criar arquivos individuais para cada `reducer` necessário. Exemplo: `userReducer.js`
 2. Em cada um dos `reducer` criar os casos para suas actions (switch/case), retornando o estado atualizado.
-3. Importar os `actionTypes` (explicação adiante) refrentes ao `reducer`
+3. Importar os `actionTypes` (exemplo adiante) refrentes ao `reducer`
 
 ```javascript
 // src/redux/reducers/userReducer.js
@@ -114,6 +114,7 @@ import { GET_USER_DATA, /actions types a serem usados/ } from '../redux/actions/
 
 const INITIAL_STATE = {
   userData: undefined,
+  isLogged: false,
 };
 
 function userReducer(state = INITIAL_STATE, action) {
@@ -122,6 +123,7 @@ function userReducer(state = INITIAL_STATE, action) {
       return {
         ...state,
         userData: action.payload,
+        isLogged: true,
         };
     default:
       return state;
@@ -151,7 +153,7 @@ export default rootReducer;
 4. Importar `createStore` e `applyMiddleware` do `redux`
 5. Importar midleweres necessários (ex: `thunk` e `logger`)
 6. Chamar a função `createStore` passando como parâmentro o `rootReducer` e a `composeWithDevtools`
-7. Como parâmetro da função `composeWithDevtools` chamar a função `applyMiddleware`, passando os middlewares desejados (opcional)
+7. (opcional) Como parâmetro da função `composeWithDevtools` chamar a função `applyMiddleware`, passando os middlewares desejados
 
 ```javascript
 // src/redux/store/index.js
@@ -172,6 +174,7 @@ export default store;
 ```javascript
 // src/redux/actions/actionTypes.js
 export const GET_USER_DATA = 'GET_USER_DATA';
+export const SOMAR_NUMEROS = 'SOMAR_NUMEROS';
 ```
 
 2. Criar as action Creator (separar as actions creators de diferentes reducers em arquivos diferentes)
@@ -210,7 +213,9 @@ export default store;
 ``` 
 
 ##### No arquivo `src/redux/actions/{sua_action}`
-1. 
+1. O `thunk` permite que as action creators façam mais do que retornar uma simples `action`. A ultima função deste exemplo mostra seu funcionamento.
+2. As action creators assíncronas retornam uma função anônima que tem acesso ao método `dispatch`, a partir dai é possível chamar novas action creators comuns
+3. Repare que somente a função `fetchJsSubreddit` é exportada, usando das outras action creators após cada passo do processo assincrono ( primeiro `dispatch` - altera estado do estado `isLoading` / segundo `dispatch` - sava o retorno da api no estado em caso de sucesso / terceiro `dispatch` - salva o erro da api no estado em caso de falha )
 
 ```javascript
 import { REQUEST_JS_SUBREDDIT, GET_JS_SUBREDDIT_DATA, GET_JS_SUBREDDIT_ERROR} from'./action_types';
@@ -239,6 +244,7 @@ export const fetchJsSubreddit = (subreddit) => {
   }
 };
 ```
+
 
 ### No arquivo `src/index.js`
 1. Importar o `Provider` e envolver o `<App />`
