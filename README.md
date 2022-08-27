@@ -1,14 +1,21 @@
-# Criando um projeto com React, Redux e ReactRouter
-  [Escrito por Renato Campos](https://github.com/RenatoDourad0)
+# Criando um projeto com React, Redux e ReactRouter + testes
+
+  * Escrito por [Renato Campos](https://github.com/RenatoDourad0)
+
 ## Índice
-  * [Instalando e iniciando o React](#Instalando-e-iniciando-o-React)
-  * [Instalando o Redux](#Instalando-o-Redux)
-  * [Instalando e iniciando o ReactRouter](#Instalando-e-iniciando-o-ReactRouter)
-  * [Iniciando o Redux](#Iniciando-o-Redux)
-    * [Criar no diretório `redux`](#Criar-no-diretório-redux)
-    * [Dentro do diretório `reducers`](#Dentro-do-diretrio-reducers)
-    * [Dentro do diretório `store`](#Dentro-do-diretório-store)
-    * [Dentro do diretório `actions`](#Dentro-do-diretório-actions)
+  * [React](#React)
+  * [ReactRouter](#ReactRouter)
+    * Instalação
+    * No arquivo `index.js`
+    * No diretório `src/components`
+    * No arquivo `src/App.js`
+    * Importações comuns
+  * [Redux](#Redux)
+    * [Instalação](#Instalação-Redux)
+    * [No arquivo `index.js`](#Criar-no-diretório-redux)
+    * [No diretório `reducers`](#Dentro-do-diretrio-reducers)
+    * [No diretório `store`](#Dentro-do-diretório-store)
+    * [No diretório `actions`](#Dentro-do-diretório-actions)
         * [Caso especial - Actions assíncronas](#Caso-especial---Actions-assíncronas)
           * No arquivo `src/redux/index.js`
           * No arquivo `src/redux/actions/{sua_action}`
@@ -22,24 +29,22 @@
   * [Ambiente de testes](#Ambiente-de-testes)
 
 
-## Instalando e iniciando o React
+## React
 
 1. ``` npx create-react-app nome-do-projeto ``` 
 2. ``` cd nome-do-projeto ``` 
 3. ``` npm start ```
 4. Criar diretórios ```components, pages, test e styles``` e organizar os arquivos existentes
 
-## Instalando o Redux
+## ReactRouter
 
-1. ``` npm install redux react-redux ```
-2. Devtools extension: ``` npm install --save @redux-devtools/extension ```
-3. middlewares comuns: ``` npm install --save redux-logger / npm install redux-thunk ```
-4. criar no diretório `src` o diretório `redux`
-
-## Instalando e iniciando o ReactRouter
+### Instalação
 
 1. ``` npm install --save react-router-dom@v5 ```
-2. no arquivo `index.js` importar `BrowserRouter` e envolver o `App`.
+
+### No arquivo `index.js`
+
+1. Importar `BrowserRouter` e envolver o `App`.
 
 ```javascript
 // src/index.js
@@ -57,9 +62,11 @@ root.render(
   </React.StrictMode>
 );
 ```
+### No diretório `src/components`
 
-3. No diretório `src/components` criar o arquivo `Routes.js` e importar `Route` e `Switch`
-4. Importar componentes/páginas referentes as rotas
+1. Criar o arquivo `Routes.js` e importar `Route` e `Switch`
+2. Importar componentes/páginas referentes as rotas
+
 ```javascript
 // src/components/Routes.js
 import { Route, Switch } from 'react-router-dom';
@@ -79,8 +86,9 @@ function Routes() {
 
 export default Routes;
 ```
+### No arquivo `src/App.js`
 
-6. No arquivo `src/App.js` importar e renderizar o componente `Routes`
+1. No arquivo `src/App.js` importar e renderizar o componente `Routes`
 
 ```javascript
 // src/App.js
@@ -94,10 +102,20 @@ function App() {
 
 export default App;
 ```
+### Importações comuns
 
-## Iniciando o Redux
+1. ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
 
-### Criar no diretório `redux`:
+## Redux
+
+### Instalação Redux
+
+1. ``` npm install redux react-redux ```
+2. Devtools extension: ``` npm install --save @redux-devtools/extension ```
+3. middlewares comuns: ``` npm install --save redux-logger / npm install redux-thunk ```
+4. criar no diretório `src` o diretório `redux`
+
+### Criar no diretório `redux`
 1. criar o diretório `store`
 2. criar o diretório `actions`
 3. criar o diretório `reducers`
@@ -309,7 +327,7 @@ const mapDispatchToProps = dispatch => ({
 5. O componente agora pode alterar o estado do redux através das props definidas na função `mapDispatchToProps`
 
 
-## Resumo de instalações, importações e organização diretórios:
+## Resumo de instalações e importações:
 
 ### React
 1. Istalação: ``` npx create-react-app nome-do-projeto ``` 
@@ -338,6 +356,8 @@ const mapDispatchToProps = dispatch => ({
   * 
     * ```npm run deploy```
     * Em caso de erro ``` gh ... já existente ``` apagar a pasta `gh-pages` em ``` node-modules/.cache ```
+4. Organização:
+  * 
 
 ### ReactRouter
 1. Istalação: ``` npm install --save react-router-dom@v5 ```
@@ -352,7 +372,8 @@ const mapDispatchToProps = dispatch => ({
 2. Importação: ```import { connect, Provider } from 'react-redux'```
 3. Diretrizes: 
   * Verificar o passo a passo [Iniciando o Redux](#Iniciando-o-Redux)
-
+4. Organização:
+  * 
 
 ## Ambiente de testes:
 
