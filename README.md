@@ -1,8 +1,8 @@
 falta definicoes react, moks, testes assíncrons com redux e testes com reactrouter e redux
 # Projeto com React, ReactRouter e Redux + testes
-
-## Com base no módulo de front-end da Trybe
-## Por (Renato Campos)[https://github.com/RenatoDourad0]
+  
+  * Com base no módulo de front-end da Trybe
+  * Por [Renato Campos](https://github.com/RenatoDourad0)
 
 ## Índice
   * [React](#React)
