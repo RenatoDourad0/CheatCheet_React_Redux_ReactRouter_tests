@@ -3,7 +3,7 @@
 ## Índice
   * [React](#React)
     * [Instalação](#Instalação-React)
-    * [No diretório `src`](#No-diretório-/-src)
+    * [No diretório `src`](#No-diretório-/src)
     * [Importações comuns](#Importações-comuns-React)
     * [Componentes de classe](#Componentes-de-classe)
     * [Componentes funcionais](#Componentes-funcionais)
