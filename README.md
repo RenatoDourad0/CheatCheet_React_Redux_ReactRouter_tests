@@ -1,3 +1,4 @@
+falta moks
 # Iniciando um projeto com React,ReactRouter e Redux + testes
 
 ## Índice
@@ -15,8 +16,8 @@
     * [No arquivo `src/App.js`](#No-arquivo-(src/App.js))
     * [Importações comuns](#Importações-comuns-ReactRouter)
     * [History](#history) 
-    * [Location](#location)
     * [Rotas dinâmicas](#Rotas-dinâmicas)
+    * [Rota notFound](#rota-notfound)
   * [Redux](#Redux)
     * [Instalação](#Instalação-Redux)
     * [No diretório `src`](#No-diretório-src)
@@ -160,11 +161,7 @@ export default App;
 
 1. O `history` é um objeto que fica fica disponível através de props a todos os componentes renderizados por rotas (?)
 2. Permite o carregamento de novas rotas através de métodos como `push()`, `replace()`, `goForward()`, `goBack()` e `block()`
-
-### `location`
-
-1. `location` mantém o caminho da URL atual
-2. A `location` é passada como prop pelo componente `Route` e é acessada no componente a ser renderizado através de `props.location`
+3. Permite acessar o caminho da url atual através da propriedade `location.pathname`
 
 ### Rotas dinâmicas
 
@@ -183,6 +180,8 @@ export default App;
   <Route exact path="/registers/:id" component={ Component1 } />
 ```
 
+### Rota notFound
+  * Basta fazer uma `Route` sem `path` na ultima posição do `Switch`, renderizando o componente NotFound
 
 ## Redux
 
@@ -415,11 +414,15 @@ const mapDispatchToProps = dispatch => ({
 
 ### Resumo React
 1. Istalação: ``` npx create-react-app nome-do-projeto ``` 
-2. Importação: 
-  * ``` import React from 'react' ```
-  * ```import ReactDOM from 'react-dom' ```
-  * ``` import { Component, ... } from 'react'; ```
-  * ``` import PropTypes from 'prop-types' ```
+2. Importações
+
+```javascript
+import React from 'react' 
+import ReactDOM from 'react-dom' 
+import { Component, ... } from 'react'
+import PropTypes from 'prop-types'
+```
+
 3. Diretrizes:
   * Start: ``` npm start ```
   * Test: ``` npm test ``` ou ``` npm test -- --coverage ``` ou ``` npm run test:coverage ```
@@ -453,7 +456,15 @@ const mapDispatchToProps = dispatch => ({
 
 ### Resumo Redux
 1. Istalação: ``` npm install redux react-redux ```
-2. Importação: ```import { connect, Provider } from 'react-redux'```
+2. Importações
+
+ ```javascript
+ import { connect, Provider } from 'react-redux'
+ import { createStore, combineReducers, applyMidleWare } from 'redux'
+ import thunk from 'redux-thunk'
+ import logger from 'redux-logger'
+ ```
+
 3. Diretrizes: 
   * Verificar o passo a passo [Iniciando o Redux](#Iniciando-o-Redux)
 4. Organização:
@@ -470,7 +481,7 @@ const mapDispatchToProps = dispatch => ({
 
 #### Jest
 
-1. Instalação: ```npm install --save-dev jest ````
+1. Instalação: ``` npm install --save-dev jest ```
 2. No `package.json`, na chave `scripts` alterar a chave `test` para `jest`
 
 ```javascript
@@ -516,8 +527,13 @@ describe('bloco de testes', () => {
 
 * [CheatSheet](./cheat-sheet-RTL.pdf)
 
-1. Com o ```npx create-react-app ``` a RTL será instalada
-2. Caso seja necessário: ``` npm install --save-dev @testing-library/react ```
+1. Com o ```npx create-react-app ``` a RTL e a userEvent serão instaladas
+2. Caso seja necessário istalação
+```bash
+npm install --save-dev @testing-library/react
+npm install --save-dev @testing-library/user-event
+```
+
 3. O arquivo `setupTests.js` também é criado pelo `create-react-app` e fornece para os testes os chamados custom jest matchers. O .toBeInTheDocument() é um exemplo.
 4. Importações
 
@@ -525,6 +541,7 @@ describe('bloco de testes', () => {
 // ./tests/index.test.js
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Component from '{ path to Component }';
 ```
 
@@ -536,17 +553,99 @@ test('renders the Component', () => {
   render(<Component />)
 
   const heroText = screen.getByRole('heading', { level: 1, name: /{ texto hero }/i})
+  const heroBtn = screen.getByRole('button', { name: /{ texto button }/i})
 
   expect(heroText).toBeInTheDocument()
-  expect(heroText).toHaveTextContent('texto hero')
+  expect(heroText).toHaveTextContent('hero text')
+
+  userEvent.click(heroBtn)
+
+  expect(heroText).toHaveTextContent('new hero text')
 })
 ```
 
-6. Seletores comuns
+6. Renderizando componentes específicos
+  * É possível renderizar qualquer componente da aplicação mas caso o componente espere receber props, é preciso passar estas props no `render`. Por isso é mais facil renderizar sempre o `App` e navegar a partir dele para o componente desejado através da `userEvent`
+7. Seletores e matchers comuns: Verificar a [CheatSheet](./cheat-sheet-RTL.pdf)
+  * Sempre dar preferência aos seletores de `role`, expecificando seu tipo e seu texto através da propriedade name
+  * Referência para `role`: (MDN Aria Roles)[https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles]
+8. métodos da userEvent: ``` userEvent. click(element) / type(element, text) / ... ```
+  * O método `userEvent.type()` aceita como terceiro argumento um objeto que tem a chave delay, um tempo em ms entre cada digitação. Caso seja preenchido este método se torna assíncrono.
 
-7. Matchers comuns
+```javascript
+// ./test/index.test.js
+test('renders the Component', async () => {
+  render(<Component />)
+
+  const heroInput = screen.getByRole('textbox', { name: /{ texto input }/i })
+
+  expect(heroInput).toBeInTheDocument()
+
+  await waitFor(() => userEvent.type(heroInput, 'Renato', { delay: 50 })) // precisa do waitFor?
+
+  expect(heroText).toHaveTextContent('new hero text')
+})
+```
 
 ##### RTL com ReactRouter
+
+1. Todo dito sobre RTL continua válido
+2. A forma de renderizar o componente muda para se ter acesso as propriedades do ReactRouter como `history` e `location.pathname`
+3. Agora é possível navegar entre rotas através da `userEvent` (cliques) e do `history` (`history.push()`) e verificar a url atual através do `history.location.pathname`
+3. Função auxiliar `renderWithRouter`
+
+```javascript
+// src/tests/helpers/renderWithRouter.js
+import React from 'react';
+import { Router } from 'react-router-dom';
+import { createMemoryHistory } from 'history';
+import { render } from '@testing-library/react';
+
+const renderWithRouter = (component) => {
+  const history = createMemoryHistory();
+  return ({
+    ...render(<Router history={ history }>{component}</Router>), history,
+  });
+};
+export default renderWithRouter;
+```
+  * a função `render` agora está 'turbinada' com um `history` local
+
+4. Assinatura dos testes
+
+```javascript
+// tests/App.test.js
+import React from 'react';
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import renderWithRouter from './helpers/renderWithRouter';
+import App from './App';
+
+it('deve renderizar o componente Sobre', () => {
+  const { history } = renderWithRouter(<App />);
+
+  const aboutLink = screen.getByRole('link', { name: 'Sobre' });
+  expect(aboutLink).toBeInTheDocument();
+  userEvent.click(aboutLink);
+
+  const { pathname } = history.location;
+  expect(pathname).toBe('/about');
+
+  const aboutTitle = screen.getByRole('heading',
+    { name: 'Você está na página Sobre' });
+  expect(aboutTitle).toBeInTheDocument();
+});
+
+it('deve testar um caminho não existente e a renderização do Not Found', () => {
+    const { history } = renderWithRouter(<App />);
+
+    history.push('/pagina/que-nao-existe/');
+
+    const notFoundTitle = screen.getByRole('heading',
+      { name: 'Página não encontrada' });
+    expect(notFoundTitle).toBeInTheDocument();
+  });
+```
 
 ##### RTL com Redux
 
