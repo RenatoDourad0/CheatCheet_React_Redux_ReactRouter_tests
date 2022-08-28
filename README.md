@@ -566,9 +566,10 @@ test('renders the Component', () => {
 
 6. Renderizando componentes específicos
   * É possível renderizar qualquer componente da aplicação mas caso o componente espere receber props, é preciso passar estas props no `render`. Por isso é mais facil renderizar sempre o `App` e navegar a partir dele para o componente desejado através da `userEvent`
-7. Seletores e matchers comuns: Verificar a [CheatSheet](./cheat-sheet-RTL.pdf)
+7. Seletores e matchers comuns: 
+  * Verificar a [CheatSheet](./cheat-sheet-RTL.pdf)
   * Sempre dar preferência aos seletores de `role`, expecificando seu tipo e seu texto através da propriedade name
-  * Referência para `role`: (MDN Aria Roles)[https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles]
+  * Referência para `role`: [MDN Aria Roles](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles)
 8. métodos da userEvent: ``` userEvent. click(element) / type(element, text) / ... ```
   * O método `userEvent.type()` aceita como terceiro argumento um objeto que tem a chave delay, um tempo em ms entre cada digitação. Caso seja preenchido este método se torna assíncrono.
 
@@ -589,10 +590,10 @@ test('renders the Component', async () => {
 
 ##### RTL com ReactRouter
 
-1. Todo dito sobre RTL continua válido
+1. Tudo dito sobre RTL continua válido
 2. A forma de renderizar o componente muda para se ter acesso as propriedades do ReactRouter como `history` e `location.pathname`
 3. Agora é possível navegar entre rotas através da `userEvent` (cliques) e do `history` (`history.push()`) e verificar a url atual através do `history.location.pathname`
-3. Função auxiliar `renderWithRouter`
+4. Função auxiliar `renderWithRouter`
 
 ```javascript
 // src/tests/helpers/renderWithRouter.js
@@ -611,7 +612,7 @@ export default renderWithRouter;
 ```
   * a função `render` agora está 'turbinada' com um `history` local
 
-4. Assinatura dos testes
+5. Importações
 
 ```javascript
 // tests/App.test.js
@@ -619,8 +620,13 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import renderWithRouter from './helpers/renderWithRouter';
-import App from './App';
+import Component from '{ path to Component }';
+```
 
+6. Assinatura dos testes
+
+```javascript
+// tests/App.test.js
 it('deve renderizar o componente Sobre', () => {
   const { history } = renderWithRouter(<App />);
 
