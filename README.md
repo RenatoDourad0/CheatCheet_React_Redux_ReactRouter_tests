@@ -3,7 +3,7 @@
 ## Índice
   * [React](#React)
     * [Instalação](#Instalação-React)
-    * [No diretório `src`](#No-diretório-/src)
+    * [No diretório `src`](#No-diretório-(/src))
     * [Importações comuns](#Importações-comuns-React)
     * [Componentes de classe](#Componentes-de-classe)
     * [Componentes funcionais](#Componentes-funcionais)
@@ -35,7 +35,13 @@
     * [ReactRouter](#Resumo-ReactRouter)
     * [Redux](#Resumo-Redux)
   * [Ambiente de testes](#Ambiente-de-testes)
-    * []()
+    * [Node Assert](#node-assert)
+    * [Jest](#jest)
+      * [Moks](#moks)
+    * [RTL](#rtl)
+      * [RTL com ReactRouter](#rtl-com-reactrouter)
+      * [RTL com Redux](#rtl-com-redux)
+      * [RTL com ReactRouter e Redux](#rtl-com-reactrouter-e-redux)
     * []()
 
 
@@ -456,8 +462,96 @@ const mapDispatchToProps = dispatch => ({
 
 ## Ambiente de testes:
 
-### Instalações
-  1. com o ```npm create-react-app ``` a RTL será instalada. Caso seja necessário: ``` npm install --save-dev @testing-library/react ```  // tem que ter versão?
+#### Node Assert
+
+1. Importação: ``` const assert = require('assert') ```
+2. Assinatura: ``` assert.{ matcher }( { value } ) // true ou false ```
+3. Matchers comuns: `strictEqual`, ...
+
+#### Jest
+
+1. Instalação: ```npm install --save-dev jest ````
+2. No `package.json`, na chave `scripts` alterar a chave `test` para `jest`
+
+```javascript
+// package.json
+  "scripts": {
+    "test": "jest",
+  },
+```
+
+3. Matchers comuns: `toBe`, ...
+4. Assinaturas
+
+```javascript
+// ./test/index.test.js
+describe('bloco de testes', () => {
+
+  beforeEach(() => {
+    // antes de cada teste
+  });
+
+  afterEach(() => {
+    // depois de cada teste
+  });
+
+  test('test 1', () => {
+    expect(funcXyz).toHaveBeenCalled()
+    expect(funcXyz()).toBe(xyz)
+  })
+
+// assíncrono
+
+  it('descrição', async () => {
+    await requisicaoMokada();
+    expect(requisicaoMokada()).toBe(xyz)
+  });
+
+})
+```
+
+##### Moks
+
+#### RTL
+
+* [CheatSheet](./cheat-sheet-RTL.pdf)
+
+1. Com o ```npx create-react-app ``` a RTL será instalada
+2. Caso seja necessário: ``` npm install --save-dev @testing-library/react ```
+3. O arquivo `setupTests.js` também é criado pelo `create-react-app` e fornece para os testes os chamados custom jest matchers. O .toBeInTheDocument() é um exemplo.
+4. Importações
+
+```javascript
+// ./tests/index.test.js
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import Component from '{ path to Component }';
+```
+
+5. Assinaturas
+
+```javascript
+// ./test/index.test.js
+test('renders the Component', () => {
+  render(<Component />)
+
+  const heroText = screen.getByRole('heading', { level: 1, name: /{ texto hero }/i})
+
+  expect(heroText).toBeInTheDocument()
+  expect(heroText).toHaveTextContent('texto hero')
+})
+```
+
+6. Seletores comuns
+
+7. Matchers comuns
+
+##### RTL com ReactRouter
+
+##### RTL com Redux
+
+##### RTL com ReactRouter e Redux
+
 
 
 
