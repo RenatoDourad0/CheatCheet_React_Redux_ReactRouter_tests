@@ -5,21 +5,22 @@
 ## Índice
   * [React](#React)
   * [ReactRouter](#ReactRouter)
-    * Instalação
-    * No arquivo `index.js`
-    * No diretório `src/components`
-    * No arquivo `src/App.js`
-    * Importações comuns
+    * [Instalação](#Instalação-ReactRouter)
+    * [No arquivo `index.js`](#No-arquivo-(`index.js`))
+    * [No diretório `src/components`](#No-diretório-(`src/components`))
+    * [No arquivo `src/App.js`](#No-arquivo-(`src/App.js`))
+    * [Importações comuns ReactRouter](#Importações-comuns-ReactRouter)
   * [Redux](#Redux)
     * [Instalação](#Instalação-Redux)
-    * [No arquivo `index.js`](#Criar-no-diretório-redux)
-    * [No diretório `reducers`](#Dentro-do-diretrio-reducers)
-    * [No diretório `store`](#Dentro-do-diretório-store)
-    * [No diretório `actions`](#Dentro-do-diretório-actions)
+    * [No diretório `src`](#No-diretório-src)
+    * [No diretório `redux`](#No-diretório-redux)
+    * [No diretório `reducers`](#No-diretório-reducers)
+    * [No diretório `store`](#No-diretório-store)
+    * [No diretório `actions`](#No-diretório-actions)
         * [Caso especial - Actions assíncronas](#Caso-especial---Actions-assíncronas)
-          * No arquivo `src/redux/index.js`
-          * No arquivo `src/redux/actions/{sua_action}`
-    * [No arquivo `src/index.js`](#No-arquivo-src-index-.-js)
+          * [No arquivo `src/redux/index.js`](#No-arquivo-(`src/redux/index.js`))
+          * [No arquivo `src/redux/actions/{sua_action}`](#No-arquivo-(`src/redux/actions/{sua_action}`))
+    * [No arquivo `src/index.js`](#No-arquivo-(`src/index.js`))
     * [Nos componentes que vão ler o estado](#Nos-componentes-que-vão-ler-o-estado)
     * [Nos componentes que vão modificar o estado](#Nos-componentes-que-vão-modificar-o-estado)
   * [Resumo de instalações, importações e organização diretórios](#Resumo-de-instalações,-importações-e-organização-diretórios)
@@ -38,7 +39,7 @@
 
 ## ReactRouter
 
-### Instalação
+### Instalação ReactRouter
 
 1. ``` npm install --save react-router-dom@v5 ```
 
@@ -102,7 +103,7 @@ function App() {
 
 export default App;
 ```
-### Importações comuns
+### Importações comuns ReactRouter
 
 1. ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
 
@@ -115,12 +116,15 @@ export default App;
 3. middlewares comuns: ``` npm install --save redux-logger / npm install redux-thunk ```
 4. criar no diretório `src` o diretório `redux`
 
-### Criar no diretório `redux`
-1. criar o diretório `store`
-2. criar o diretório `actions`
-3. criar o diretório `reducers`
+### No diretório `src`
+1. Criar no diretório `redux`
 
-### Dentro do diretório `reducers`
+### No diretório `redux`
+1. Criar o diretório `store`
+2. Criar o diretório `actions`
+3. Criar o diretório `reducers`
+
+### No diretorio `reducers`
 1. Criar arquivos individuais para cada `reducer` necessário. Exemplo: `userReducer.js`
 2. Em cada um dos `reducer` criar os casos para suas actions (switch/case), retornando o estado atualizado.
 3. Importar os `actionTypes` (exemplo adiante) refrentes ao `reducer`
@@ -163,7 +167,7 @@ const rootReducer = combineReducers({ userReducer. nameReducer2 });
 export default rootReducer;
 ```
 
-### Dentro do diretório `store`
+### No diretorio `store`
 1. Criar o arquivo `index.js`
 2. Importar o `rootReducer`
 3. Importar o `DevTools` do `@redux-devtools/extension`
@@ -185,7 +189,7 @@ const store = createStore(rootReducer, composeWithDevTools(applyMiddleware(logge
 export default store;
 ``` 
 
-### Dentro do diretório `actions`
+### No diretorio `actions`
 1. Criar arquivo `actionTypes.js` com as actionTypes sendo exportadas (pensar no nome da action de acordo com a ação que a gerou).
 
 ```javascript
