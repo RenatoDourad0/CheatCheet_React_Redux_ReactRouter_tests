@@ -1,15 +1,18 @@
-# Criando um projeto com React, Redux e ReactRouter + testes
+# Iniciando um projeto com React, Redux e ReactRouter + testes
 
   * Escrito por [Renato Campos](https://github.com/RenatoDourad0)
 
 ## Índice
   * [React](#React)
+    * [Instalação](#Instalação-React)
+    * [No diretório `src`](#No-diretório-(`/src`))
+    * [Importações comuns](#Importações-comuns-React)
   * [ReactRouter](#ReactRouter)
     * [Instalação](#Instalação-ReactRouter)
     * [No arquivo `index.js`](#No-arquivo-(`index.js`))
     * [No diretório `src/components`](#No-diretório-(`src/components`))
     * [No arquivo `src/App.js`](#No-arquivo-(`src/App.js`))
-    * [Importações comuns ReactRouter](#Importações-comuns-ReactRouter)
+    * [Importações comuns](#Importações-comuns-ReactRouter)
   * [Redux](#Redux)
     * [Instalação](#Instalação-Redux)
     * [No diretório `src`](#No-diretório-src)
@@ -23,25 +26,37 @@
     * [No arquivo `src/index.js`](#No-arquivo-(`src/index.js`))
     * [Nos componentes que vão ler o estado](#Nos-componentes-que-vão-ler-o-estado)
     * [Nos componentes que vão modificar o estado](#Nos-componentes-que-vão-modificar-o-estado)
-  * [Resumo de instalações, importações e organização diretórios](#Resumo-de-instalações,-importações-e-organização-diretórios)
-    * [React](#React)
-    * [ReactRouter](#ReactRouter)
-    * [Redux](#Redux)
+  * [Resumo de instalações e importações](#Resumo-de-instalações-e-importações)
+    * [React](#Resumo-React)
+    * [ReactRouter](#Resumo-ReactRouter)
+    * [Redux](#Resumo-Redux)
   * [Ambiente de testes](#Ambiente-de-testes)
 
 
 ## React
 
+### Instalação React
+
 1. ``` npx create-react-app nome-do-projeto ``` 
 2. ``` cd nome-do-projeto ``` 
 3. ``` npm start ```
-4. Criar diretórios ```components, pages, test e styles``` e organizar os arquivos existentes
+
+### No diretório `/src`
+
+1. Criar diretórios ```components, pages, test e styles``` e organizar os arquivos existentes
 
 ## ReactRouter
 
 ### Instalação ReactRouter
 
 1. ``` npm install --save react-router-dom@v5 ```
+
+### Importações comuns React
+1. 
+  * ``` import React from 'react' ```
+  * ```import ReactDOM from 'react-dom' ```
+  * ``` import { Component, ... } from 'react'; ```
+  * ``` import PropTypes from 'prop-types' ```
 
 ### No arquivo `index.js`
 
@@ -331,9 +346,9 @@ const mapDispatchToProps = dispatch => ({
 5. O componente agora pode alterar o estado do redux através das props definidas na função `mapDispatchToProps`
 
 
-## Resumo de instalações e importações:
+## Resumo de instalações e importações
 
-### React
+### Resumo React
 1. Istalação: ``` npx create-react-app nome-do-projeto ``` 
 2. Importação: 
   * ``` import React from 'react' ```
@@ -363,7 +378,7 @@ const mapDispatchToProps = dispatch => ({
 4. Organização:
   * 
 
-### ReactRouter
+### Resumo ReactRouter
 1. Istalação: ``` npm install --save react-router-dom@v5 ```
 2. Importação: ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
 3. Diretrizes: 
@@ -371,7 +386,7 @@ const mapDispatchToProps = dispatch => ({
   *  No diretório `src/components` criar o arquivo `Routes.js` e importar `Route` e `Switch`
   * No arquivo `src/App.js` importar e renderizar o componente `Routes`
 
-### Redux
+### Resumo Redux
 1. Istalação: ``` npm install redux react-redux ```
 2. Importação: ```import { connect, Provider } from 'react-redux'```
 3. Diretrizes: 
