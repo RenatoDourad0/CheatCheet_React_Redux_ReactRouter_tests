@@ -1,18 +1,22 @@
 # Iniciando um projeto com React, Redux e ReactRouter + testes
 
-  * Escrito por [Renato Campos](https://github.com/RenatoDourad0)
-
 ## Índice
   * [React](#React)
     * [Instalação](#Instalação-React)
     * [No diretório `src`](#No-diretório-(`/src`))
     * [Importações comuns](#Importações-comuns-React)
+    * [Componentes de classe](#Componentes-de-classe)
+    * [Componentes funcionais](#Componentes-funcionais)
+    * [Ciclo de vida](#Ciclo-de-vida)
   * [ReactRouter](#ReactRouter)
     * [Instalação](#Instalação-ReactRouter)
     * [No arquivo `index.js`](#No-arquivo-(`index.js`))
     * [No diretório `src/components`](#No-diretório-(`src/components`))
     * [No arquivo `src/App.js`](#No-arquivo-(`src/App.js`))
     * [Importações comuns](#Importações-comuns-ReactRouter)
+    * [History](#history) 
+    * [Location](#location)
+    * [Rotas dinâmicas](#Rotas-dinâmicas)
   * [Redux](#Redux)
     * [Instalação](#Instalação-Redux)
     * [No diretório `src`](#No-diretório-src)
@@ -20,7 +24,7 @@
     * [No diretório `reducers`](#No-diretório-reducers)
     * [No diretório `store`](#No-diretório-store)
     * [No diretório `actions`](#No-diretório-actions)
-        * [Caso especial - Actions assíncronas](#Caso-especial---Actions-assíncronas)
+        * [Actions assíncronas](#Actions-assíncronas)
           * [No arquivo `src/redux/index.js`](#No-arquivo-(`src/redux/index.js`))
           * [No arquivo `src/redux/actions/{sua_action}`](#No-arquivo-(`src/redux/actions/{sua_action}`))
     * [No arquivo `src/index.js`](#No-arquivo-(`src/index.js`))
@@ -31,6 +35,8 @@
     * [ReactRouter](#Resumo-ReactRouter)
     * [Redux](#Resumo-Redux)
   * [Ambiente de testes](#Ambiente-de-testes)
+    * []()
+    * []()
 
 
 ## React
@@ -45,18 +51,33 @@
 
 1. Criar diretórios ```components, pages, test e styles``` e organizar os arquivos existentes
 
-## ReactRouter
-
-### Instalação ReactRouter
-
-1. ``` npm install --save react-router-dom@v5 ```
-
 ### Importações comuns React
+
 1. 
   * ``` import React from 'react' ```
   * ```import ReactDOM from 'react-dom' ```
   * ``` import { Component, ... } from 'react'; ```
   * ``` import PropTypes from 'prop-types' ```
+
+### Componentes de classe
+
+1. 
+
+### Componentes funcionais
+
+1. 
+
+### Ciclo de vida
+
+1. 
+
+
+## ReactRouter
+
+### Instalação ReactRouter
+
+1. Versão 5: ``` npm install --save react-router-dom@v5 ```
+2. A versão 6 teve breaking changes 
 
 ### No arquivo `index.js`
 
@@ -82,6 +103,7 @@ root.render(
 
 1. Criar o arquivo `Routes.js` e importar `Route` e `Switch`
 2. Importar componentes/páginas referentes as rotas
+3. Rotas que renderizam componentes sem props podem utilizar o `component={ Componete }`. Rotas que renderizam componentes que precisam de props devem usar a `render={ (props) => <Componete { ...props } (+ outras props) /> }`
 
 ```javascript
 // src/components/Routes.js
@@ -91,9 +113,14 @@ import Component2 from '../pages/Component2'
 import Component3 from '../pages/Component3'
 
 function Routes() {
+  const name = ...
   return (
       <Switch>
-        <Route exact path="/" component={ Component1 } />
+        <Route
+          exact
+          path="/"
+          render={ (props) => <Component1 { ...props } name={ name } /> }
+        />
         <Route exact path="/js" component={ Component2 } />
         <Route exact path="/react"component={ Component3 } />
       </Switch>
@@ -118,9 +145,39 @@ function App() {
 
 export default App;
 ```
+
 ### Importações comuns ReactRouter
 
 1. ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
+
+### `history`
+
+1. O `history` é um objeto que fica fica disponível através de props a todos os componentes renderizados por rotas (?)
+2. Acessado no componente através de ``` this.props.history ```
+2. Permite o carregamento de novas rotas através de métodos como `push()`, `replace()`, ``` goForward() e goBack() ``` e `block()`
+
+### `location`
+
+1. `location` mantém o caminho da URL atual
+2. A `location` é passada como prop pelo componente `Route` e é acessada no componente a ser renderizado através de `this.props.location`
+
+### Rotas dinâmicas
+
+```javascript
+// src/components/Routes.js
+  <Route
+    exact
+    path="/registers/:id"
+    render={ (props) => <Component1 { ...props } name={ name } /> }
+  />
+  // ou
+  <Route exact path="/registers/:id" component={ Component1 } />
+```
+
+1. Rotas dinâmicas permitem que o componente que é renderizado pela rota tenha acesso em suas props ao valor passado para a URL 
+2. Informação fica dfisponível na prop match -> params -> placeholder (id)
+``` const { match: { params: { id } } } = props ```
+
 
 ## Redux
 
@@ -227,8 +284,10 @@ import { GET_USER_DATA } from '../actions/actionTypes';
 export const getUserDataAction = (payload) => ({ type: GET_USER_DATA, payload });
 ```
 
-#### Caso especial - Actions assíncronas:
+#### Actions assíncronas
+
 ##### No arquivo `src/redux/index.js`
+
 1. Instalar o middleware redux-thunk: ```npm install redux-thunk```
 2. Verificar a existencia da função `applyMiddleware` do `redux` e caso necessário fazer a importação
 2. Importar o `thunk` do `redux-thunk`
@@ -249,6 +308,7 @@ export default store;
 ``` 
 
 ##### No arquivo `src/redux/actions/{sua_action}`
+
 1. O `thunk` permite que as action creators façam mais do que retornar uma simples `action`. A ultima função deste exemplo mostra seu funcionamento.
 2. As action creators assíncronas retornam uma função anônima que tem acesso ao método `dispatch`, a partir dai é possível chamar novas action creators comuns
 3. Repare que somente a função `fetchJsSubreddit` é exportada, usando das outras action creators após cada passo do processo assincrono ( primeiro `dispatch` - altera estado do estado `isLoading` / segundo `dispatch` - sava o retorno da api no estado em caso de sucesso / terceiro `dispatch` - salva o erro da api no estado em caso de falha )
@@ -280,7 +340,6 @@ export const fetchJsSubreddit = (subreddit) => {
   }
 };
 ```
-
 
 ### No arquivo `src/index.js`
 1. Importar o `Provider` e envolver o `<App />`
