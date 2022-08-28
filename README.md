@@ -612,7 +612,7 @@ test('renders the Component', async () => {
 ##### RTL com ReactRouter
 
 1. Tudo dito sobre RTL continua válido
-2. A forma de renderizar o componente muda para se ter acesso as propriedades do ReactRouter como `history` e `location.pathname`
+2. A forma de renderizar o componente muda para se ter acesso as propriedades do ReactRouter
 3. Agora é possível navegar entre rotas através da `userEvent` (cliques) e do `history` (`history.push()`) e verificar a url atual através do `history.location.pathname`
 4. Função auxiliar `renderWithRouter`
 
@@ -631,7 +631,7 @@ const renderWithRouter = (component) => {
 };
 export default renderWithRouter;
 ```
-  * A função `render` agora está 'turbinada' com um `history` local
+  * A função `render` agora está 'turbinada' com um mock do `history` da aplicação
 
 5. Importações
 
@@ -689,8 +689,9 @@ it('deve testar um caminho não existente e a renderização do Not Found', () =
 1. Tudo dito sobre RTL continua válido
 2. A forma de renderizar o componente muda para se ter acesso ao estado do Redux
 3. Agora é possível ...
-4. O `Provider` deve estar no `src/index.js` e não no `src/App.js`, se não é impossivel renderizar o App com o store disponível 
+4. O `Provider` deve estar no `src/index.js` e não no `src/App.js`, se não é impossivel renderizar o App com o mock do `store` disponível 
 5. Função auxiliar `renderWithRedux`
+  * Sem o uso da função `combineReducers`
 
 ```javascript
 // src/tests/helpers/renderWithRedux.js
@@ -717,7 +718,40 @@ const renderWithRedux = (
 
 export default renderWithRedux
 ```
-  * A função `render` agora está 'turbinada' com o `store` do Redux
+
+  * Com o uso da função `combineReducers`
+
+```javascript
+// src/tests/helpers/renderWithRedux.js
+import React from 'react';
+// import { createStore } from 'redux';
+import { createStore, combineReducers } from 'redux';
+import { Provider } from 'react-redux';
+import { render } from '@testing-library/react';
+// import rootReducer from './src/redux/reducers/index'
+import reducer1 from './src/redux/reducers/reducer1'
+import reducer2 from './src/redux/reducers/reducer2'
+
+const renderWithRedux = (
+  component,
+  { 
+    initialState = {}, 
+    // store = createStore(rootReducer, initialState),
+    store = createStore(combineReducers({ reducer1, reducer2 }), initialState),
+  } = {}
+) => ({
+    ...render(
+      <Provider store={store}>
+        {component}
+      </Provider>
+      ),
+    store,
+})
+
+export default renderWithRedux
+```
+* Importante se atentar para a estrutura do `store` original da aplicação, se tiver sido implementado com a função `combineReducer` (rootReducer) o mock também deve seguir essa implementação.
+* A função `render` agora está 'turbinada' com um mock do `store` da aplicação
 
 6. Importações
 
@@ -740,6 +774,8 @@ test('descrição', () => {
 })
 ```
 
+  * Quando chamada sem o segundo argumento trás para o `store` os valores definidos no initial_state da aplicação
+  * O segundo argumento deve ser um objeto que respeita a estrutura ``` { initialState: { nomeReducer }: { nomePropriedade: valorPropriedade }} ``` no caso do store ter sido definido com a função `combineReducers` ou ``` { initialState: { nomePropriedade: valorPropriedade }} ``` no caso do store ter somente um reducer
 8. Assinatura dos testes
 
 ```javascript
@@ -753,8 +789,8 @@ test('descrição', () => {
 ##### RTL com ReactRouter e Redux
 
 1. Tudo dito sobre RTL continua válido
-2. A forma de renderizar o componente muda para se ter acesso as propriedades do ReactRouter como `history` e `location.pathname` e ao estado do Redux
-3. Agora é possível navegar entre rotas através da `userEvent` (cliques) e do `history` (`history.push()`) e verificar a url atual através do `history.location.pathname` e 
+2. A forma de renderizar o componente muda para se ter acesso as propriedades do ReactRouter como `history` e ao estado do Redux
+3. Agora é possível navegar entre rotas através da `userEvent` (cliques) e do `history` (`history.push()`) e verificar a url atual através do `history.location.pathname` e ...
 4. Função auxiliar `renderWithRouterAndRedux`
 
 ```javascript
@@ -809,8 +845,7 @@ const renderWithRouterAndRedux = (
 
 export default renderWithRouterAndRedux;
 ```
-  * A função `render` agora está 'turbinada' com o `history` do ReactRouter e o `store` do Redux
-
+  * A função `render` agora está 'turbinada' com mocks do `history` e do `store` da aplicação
   5. Importações
 
 ```javascript
