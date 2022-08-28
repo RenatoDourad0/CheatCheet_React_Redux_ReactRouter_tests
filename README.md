@@ -1,4 +1,4 @@
-# Iniciando um projeto com React, Redux e ReactRouter + testes
+# Iniciando um projeto com React,ReactRouter e Redux + testes
 
 ## Índice
   * [React](#React)
@@ -24,7 +24,7 @@
     * [No diretório `reducers`](#No-diretório-reducers)
     * [No diretório `store`](#No-diretório-store)
     * [No diretório `actions`](#No-diretório-actions)
-        * [Actions assíncronas](#Actions-assíncronas)
+        * [Actions assíncronas com thunk](#Actions-assíncronas-com-thunk)
           * [No arquivo `src/redux/index.js`](#No-arquivo-(`src/redux/index.js`))
           * [No arquivo `src/redux/actions/{sua_action}`](#No-arquivo-(`src/redux/actions/{sua_action}`))
     * [No arquivo `src/index.js`](#No-arquivo-(`src/index.js`))
@@ -103,7 +103,7 @@ root.render(
 
 1. Criar o arquivo `Routes.js` e importar `Route` e `Switch`
 2. Importar componentes/páginas referentes as rotas
-3. Rotas que renderizam componentes sem props podem utilizar o `component={ Componete }`. Rotas que renderizam componentes que precisam de props devem usar a `render={ (props) => <Componete { ...props } (+ outras props) /> }`
+3. Rotas que renderizam componentes sem props podem utilizar o `component={ Componet }`. Rotas que renderizam componentes que precisam de props devem usar a `render={ (props) => <Componet { ...props } (+ outras props) /> }`
 
 ```javascript
 // src/components/Routes.js
@@ -153,15 +153,18 @@ export default App;
 ### `history`
 
 1. O `history` é um objeto que fica fica disponível através de props a todos os componentes renderizados por rotas (?)
-2. Acessado no componente através de ``` this.props.history ```
-2. Permite o carregamento de novas rotas através de métodos como `push()`, `replace()`, ``` goForward() e goBack() ``` e `block()`
+2. Permite o carregamento de novas rotas através de métodos como `push()`, `replace()`, `goForward()`, `goBack()` e `block()`
 
 ### `location`
 
 1. `location` mantém o caminho da URL atual
-2. A `location` é passada como prop pelo componente `Route` e é acessada no componente a ser renderizado através de `this.props.location`
+2. A `location` é passada como prop pelo componente `Route` e é acessada no componente a ser renderizado através de `props.location`
 
 ### Rotas dinâmicas
+
+1. Rotas dinâmicas permitem que o componente que é renderizado pela rota tenha acesso em suas props ao valor passado para a URL 
+2. Informação fica dfisponível na prop match -> params -> placeholder (id)
+  * ``` const { match: { params: { id } } } = props ```
 
 ```javascript
 // src/components/Routes.js
@@ -174,10 +177,6 @@ export default App;
   <Route exact path="/registers/:id" component={ Component1 } />
 ```
 
-1. Rotas dinâmicas permitem que o componente que é renderizado pela rota tenha acesso em suas props ao valor passado para a URL 
-2. Informação fica dfisponível na prop match -> params -> placeholder (id)
-``` const { match: { params: { id } } } = props ```
-
 
 ## Redux
 
@@ -186,7 +185,6 @@ export default App;
 1. ``` npm install redux react-redux ```
 2. Devtools extension: ``` npm install --save @redux-devtools/extension ```
 3. middlewares comuns: ``` npm install --save redux-logger / npm install redux-thunk ```
-4. criar no diretório `src` o diretório `redux`
 
 ### No diretório `src`
 1. Criar no diretório `redux`
@@ -276,15 +274,17 @@ export const SOMAR_NUMEROS = 'SOMAR_NUMEROS';
 ```javascript
 // src/redux/actions/mathActions.js
 import { SOMAR_NUMEROS, DIVIDIR_NUMEROS } from '../actions/actionTypes';
+
 export const somarNumerosAction = (payload) => ({ type: SOMAR_NUMEROS, payload });
 export const dividirNumerosAction = (payload) => ({ type: DIVIDIR_NUMEROS, payload });
 
 // src/redux/actions/userActions.js
 import { GET_USER_DATA } from '../actions/actionTypes';
+
 export const getUserDataAction = (payload) => ({ type: GET_USER_DATA, payload });
 ```
 
-#### Actions assíncronas
+#### Actions assíncronas com thunk
 
 ##### No arquivo `src/redux/index.js`
 
@@ -311,7 +311,7 @@ export default store;
 
 1. O `thunk` permite que as action creators façam mais do que retornar uma simples `action`. A ultima função deste exemplo mostra seu funcionamento.
 2. As action creators assíncronas retornam uma função anônima que tem acesso ao método `dispatch`, a partir dai é possível chamar novas action creators comuns
-3. Repare que somente a função `fetchJsSubreddit` é exportada, usando das outras action creators após cada passo do processo assincrono ( primeiro `dispatch` - altera estado do estado `isLoading` / segundo `dispatch` - sava o retorno da api no estado em caso de sucesso / terceiro `dispatch` - salva o erro da api no estado em caso de falha )
+3. Repare que somente a função `fetchJsSubreddit` é exportada, usando das outras action creators após cada passo do processo assincrono ( primeiro `dispatch` - altera estado `isLoading` / segundo `dispatch` - sava o retorno da api no estado em caso de sucesso / terceiro `dispatch` - salva o erro da api no estado em caso de falha )
 
 ```javascript
 import { REQUEST_JS_SUBREDDIT, GET_JS_SUBREDDIT_DATA, GET_JS_SUBREDDIT_ERROR} from'./action_types';
@@ -387,7 +387,7 @@ export default connect(mapStateToProps, null)(FirstComponent);
 ### Nos componentes que vão modificar o estado:
 1. criar a função `mapDispatchToProps`
 2. importar `connect`
-3. Importar as actions necessárias
+3. Importar as actions creators necessárias
 4. exportar o componete usando `connect()()`
 
 ```javascript
@@ -416,7 +416,7 @@ const mapDispatchToProps = dispatch => ({
   * ``` import PropTypes from 'prop-types' ```
 3. Diretrizes:
   * Start: ``` npm start ```
-  * Test: ``` npm test ```
+  * Test: ``` npm test ``` ou ``` npm test -- --coverage ``` ou ``` npm run test:coverage ```
   * Build: ``` npm run build ```
   * Deploy com gh-pages: 
     * Dentro do diretório do projeto: ``` npm install gh-pages ```
@@ -435,10 +435,10 @@ const mapDispatchToProps = dispatch => ({
     * ```npm run deploy```
     * Em caso de erro ``` gh ... já existente ``` apagar a pasta `gh-pages` em ``` node-modules/.cache ```
 4. Organização:
-  * 
+  * Diretórios ```components, pages, test e styles```
 
 ### Resumo ReactRouter
-1. Istalação: ``` npm install --save react-router-dom@v5 ```
+1. Istalação versão 5: ``` npm install --save react-router-dom@v5 ```
 2. Importação: ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
 3. Diretrizes: 
   *  No arquivo `src/index.js` importar `BrowserRouter` e envolver o componente`App`.
@@ -451,7 +451,8 @@ const mapDispatchToProps = dispatch => ({
 3. Diretrizes: 
   * Verificar o passo a passo [Iniciando o Redux](#Iniciando-o-Redux)
 4. Organização:
-  * 
+  * Diretório `Redux`
+  * Diretórios `store`, `actions`, `reducers`, cada um com seu `index.js`
 
 ## Ambiente de testes:
 
