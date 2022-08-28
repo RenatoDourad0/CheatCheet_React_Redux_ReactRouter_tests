@@ -1,4 +1,4 @@
-falta moks, testes com redux e testes com reactrouter e redux
+falta definicoes react, moks, testes com redux e testes com reactrouter e redux
 # Iniciando um projeto com React,ReactRouter e Redux + testes
 
 ## Índice
@@ -9,6 +9,7 @@ falta moks, testes com redux e testes com reactrouter e redux
     * [Componentes de classe](#Componentes-de-classe)
     * [Componentes funcionais](#Componentes-funcionais)
     * [Ciclo de vida](#Ciclo-de-vida)
+    * [Hooks](#Hooks)
   * [ReactRouter](#ReactRouter)
     * [Instalação](#Instalação-ReactRouter)
     * [No arquivo `index.js`](#No-arquivo-(index.js))
@@ -42,6 +43,7 @@ falta moks, testes com redux e testes com reactrouter e redux
     * [RTL](#rtl)
       * [RTL com ReactRouter](#rtl-com-reactrouter)
       * [RTL com Redux](#rtl-com-redux)
+        * [Testes assíncronos com Redux](#testes-assíncronos-com-redux)
       * [RTL com ReactRouter e Redux](#rtl-com-reactrouter-e-redux)
 
 ## React
@@ -116,6 +118,7 @@ import { Route, Switch } from 'react-router-dom';
 import Component1 from '../pages/Component1'
 import Component2 from '../pages/Component2'
 import Component3 from '../pages/Component3'
+import NotFound from '../pages/NotFound'
 
 function Routes() {
   const name = ...
@@ -127,7 +130,8 @@ function Routes() {
           render={ (props) => <Component1 { ...props } name={ name } /> }
         />
         <Route exact path="/js" component={ Component2 } />
-        <Route exact path="/react"component={ Component3 } />
+        <Route exact path="/react" component={ Component3 } />
+        <Route component={ NotFound } />
       </Switch>
   )
 };
@@ -157,7 +161,7 @@ export default App;
 
 ### `history`
 
-1. O `history` é um objeto que fica fica disponível através de props a todos os componentes renderizados por rotas (?)
+1. O `history` é um objeto que fica fica disponível através de props a todos os componentes renderizados por rotas
 2. Permite o carregamento de novas rotas através de métodos como `push()`, `replace()`, `goForward()`, `goBack()` e `block()`
 3. Permite acessar o caminho da url atual através da propriedade `location.pathname`
 
@@ -386,6 +390,7 @@ export default connect(mapStateToProps, null)(FirstComponent);
 ``` 
 
 4. O componente agora tem acesso ao estado do redux através das props definidas na função `mapStateToProps`
+5. Omitindo o segundo argumento da função `connect` o `dispatch` ficará disponível para o componente através de suas props ``` connect(mapStateToProps)(FirstComponent) ```
 
 ### Nos componentes que vão modificar o estado:
 1. criar a função `mapDispatchToProps`
@@ -411,7 +416,7 @@ const mapDispatchToProps = dispatch => ({
 ## Resumo de instalações e importações
 
 ### Resumo React
-1. Istalação: ``` npx create-react-app nome-do-projeto ``` 
+1. Instalação: ``` npx create-react-app nome-do-projeto ``` 
 2. Importações
 
 ```javascript
@@ -428,11 +433,11 @@ import PropTypes from 'prop-types'
   * Deploy com gh-pages: 
     * Dentro do diretório do projeto: ``` npm install gh-pages ```
     * No arquivo ``` package.json ``` alterar:
-      * ``` "homepage" : "https://{username_github}.github.io/{nome_do_diretório}" ```
-      * Na propriedade `scripts`:
 
 ```javascript
 // package.json
+"homepage" : "https://{ username_github }.github.io/{ nome_do_diretório }",
+{ ... }
 "scripts": {
           "predeploy" : "npm run build",
           "deploy" : "gh-pages -d build"
@@ -445,7 +450,7 @@ import PropTypes from 'prop-types'
   * Diretórios ```components, pages, test e styles```
 
 ### Resumo ReactRouter
-1. Istalação versão 5: ``` npm install --save react-router-dom@v5 ```
+1. Instalação versão 5: ``` npm install --save react-router-dom@v5 ```
 2. Importação: ``` import {BrowserRouter, Route, Switch, Link, Redirect, ...} from 'react-router-dom' ```
 3. Diretrizes: 
   *  No arquivo `src/index.js` importar `BrowserRouter` e envolver o componente`App`.
@@ -453,7 +458,14 @@ import PropTypes from 'prop-types'
   * No arquivo `src/App.js` importar e renderizar o componente `Routes`
 
 ### Resumo Redux
-1. Istalação: ``` npm install redux react-redux ```
+1. Instalação
+
+ ```bash
+npm install redux react-redux
+npm install redux-thunk
+npm install redux-logger
+ ```
+
 2. Importações
 
  ```javascript
@@ -525,11 +537,13 @@ describe('bloco de testes', () => {
 
 * [CheatSheet](./cheat-sheet-RTL.pdf)
 
-1. Com o ```npx create-react-app ``` a RTL e a userEvent serão instaladas
-2. Caso seja necessário istalação
+1. Com o ```npx create-react-app ``` a RTL, a userEvent e o Jest serão instaladas
+2. Caso seja necessário instalação
+
 ```bash
 npm install --save-dev @testing-library/react
 npm install --save-dev @testing-library/user-event
+npm install --save-dev jest 
 ```
 
 3. O arquivo `setupTests.js` também é criado pelo `create-react-app` e fornece para os testes os chamados custom jest matchers. O .toBeInTheDocument() é um exemplo.
@@ -568,7 +582,7 @@ test('renders the Component', () => {
   * Verificar a [CheatSheet](./cheat-sheet-RTL.pdf)
   * Sempre dar preferência aos seletores de `role`, expecificando seu tipo e seu texto através da propriedade name
   * Referência para `role`: [MDN Aria Roles](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles)
-8. métodos da userEvent: ``` userEvent. click(element) / type(element, text) / ... ```
+8. Métodos comuns da userEvent: ``` userEvent. click(element) / type(element, text) / ... ```
   * O método `userEvent.type()` aceita como terceiro argumento um objeto que tem a chave delay, um tempo em ms entre cada digitação. Caso seja preenchido este método se torna assíncrono.
 
 ```javascript
@@ -621,7 +635,17 @@ import renderWithRouter from './helpers/renderWithRouter';
 import Component from '{ path to Component }';
 ```
 
-6. Assinatura dos testes
+6. Assinatura da função `renderWithRouter`
+
+```javascript
+// tests/App.test.js
+it('descrição', () => {
+  const { history } = renderWithRouter(<App />);
+  const { pathname } = history.location;
+});
+```
+
+7. Assinatura dos testes
 
 ```javascript
 // tests/App.test.js
@@ -655,28 +679,34 @@ it('deve testar um caminho não existente e a renderização do Not Found', () =
 
 1. Tudo dito sobre RTL continua válido
 2. A forma de renderizar o componente muda para se ter acesso ao estado do Redux
-3. Agora é possível 
-4. Função auxiliar `renderWithRedux`
-5. O `Provider`deve estar no `src/index.js` e não no `src/App.js`, se não é impossivel renderizar o App com o store disponível 
+3. Agora é possível ...
+4. O `Provider` deve estar no `src/index.js` e não no `src/App.js`, se não é impossivel renderizar o App com o store disponível 
+5. Função auxiliar `renderWithRedux`
 
 ```javascript
 // src/tests/helpers/renderWithRedux.js
 import React from 'react';
-import { createStore, combineReducers } from 'redux';
+import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react';
-import reducer1 from './src/redux/reducers/reducer1'
-import reducer2 from './src/redux/reducers/reducer2'
+import rootReducer from './src/redux/reducers/index'
 
 const renderWithRedux = (
   component,
-  { initialState, store = createStore(combineReducers({ reducer1, reducer2 }), initialState) } = {}
-) => {
-  return {
-    ...render(<Provider store={store}>{component}</Provider>),
+  { 
+    initialState = {}, 
+    store = createStore(rootReducer, initialState),
+  } = {}
+) => ({
+    ...render(
+      <Provider store={store}>
+        {component}
+      </Provider>
+      ),
     store,
-  }
-}
+})
+
+export default renderWithRedux
 ```
   * a função `render` agora está 'turbinada' com o `store` do Redux
 
@@ -686,15 +716,30 @@ const renderWithRedux = (
 // tests/App.test.js
 import React from 'react';
 import { cleanup, screen } from '@testing-library/react';
-import App from './App';
+import renderWithRedux from './helpers/renderWithRedux'
+import Componet from '{ path to Component }';
 ```
 
-7. Assinatura dos testes
+7. Assinatura da função `renderWithRedux`
+
+```javascript
+// tests/App.test.js
+test('descrição', () => {
+  renderWithRedux(<Component />)
+  // ou com estado inicial
+  renderWithRedux(<Componet />, { initialState: { reducer1: { state1: value } } })
+})
+```
+
+8. Assinatura dos testes
 
 ```javascript
 // tests/App.test.js
 
 ```
+
+###### Testes assíncronos com Redux
+
 
 ##### RTL com ReactRouter e Redux
 
@@ -705,7 +750,55 @@ import App from './App';
 
 ```javascript
 // src/tests/helpers/renderWithRouterAndRedux.js
+import React from 'react';
+import { Router } from 'react-router-dom';
+import { createMemoryHistory } from 'history';
+import { render } from '@testing-library/react';
 
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import rootReducer from '../../redux/reducers';
+
+const renderWithRouterAndRedux = (
+  component, // componente a ser renderizado
+  {
+    // estado inicial para o nosso reducer
+    initialState = {},
+
+    // caso você passe uma store por parâmetro ela será utilizada
+    // caso contrário vai chamar a função createStore e criar uma nova
+    store = createStore(rootReducer, initialState),
+
+    // rota inicial da nossa aplicação
+    initialEntries = ['/'],
+
+    // caso você passe um history por parâmetro ele será utilizado
+    // caso contrário vai chamar a função createMemotryHistory e criar um novo
+    history = createMemoryHistory({ initialEntries }),
+  } = {},
+) => ({ // arrow function que retorna um objeto
+
+  // spread do retorno do render { getByTestId, getByRole, etc }
+  ...render(
+    <Router history={ history }>
+      <Provider store={ store }>
+        {component}
+      </Provider>
+    </Router>,
+  ),
+
+  // history usado acima
+  history,
+
+  // store usada acima
+  store,
+});
+
+// resultado dessa função:
+// renderiza o componente no teste
+// retorna um objeto contendo { store, history, getByTestId, getByRole, etc }
+
+export default renderWithRouterAndRedux;
 ```
   * a função `render` agora está 'turbinada' com o `history` do ReactRouter e o `store` do Redux
 
@@ -716,7 +809,9 @@ import App from './App';
 
 ```
 
-6. Assinatura dos testes
+6. Assinatura da função `renderWithRouterAndRedux`
+
+7. Assinatura dos testes
 
 ```javascript
 // tests/App.test.js
