@@ -1,5 +1,8 @@
-falta definicoes react, moks, testes com redux e testes com reactrouter e redux
-# Iniciando um projeto com React,ReactRouter e Redux + testes
+falta definicoes react, moks, testes assíncrons com redux e testes com reactrouter e redux
+# Projeto com React, ReactRouter e Redux + testes
+
+## Com base no módulo de front-end da Trybe
+## Por (Renato Campos)[https://github.com/RenatoDourad0]
 
 ## Índice
   * [React](#React)
@@ -7,9 +10,9 @@ falta definicoes react, moks, testes com redux e testes com reactrouter e redux
     * [No diretório `src`](#No-diretório-(/src))
     * [Importações comuns](#Importações-comuns-React)
     * [Componentes de classe](#Componentes-de-classe)
+      * [Ciclo de vida](#Ciclo-de-vida)
     * [Componentes funcionais](#Componentes-funcionais)
-    * [Ciclo de vida](#Ciclo-de-vida)
-    * [Hooks](#Hooks)
+      * [Hooks](#Hooks)
   * [ReactRouter](#ReactRouter)
     * [Instalação](#Instalação-ReactRouter)
     * [No arquivo `index.js`](#No-arquivo-(index.js))
@@ -70,11 +73,15 @@ falta definicoes react, moks, testes com redux e testes com reactrouter e redux
 
 1. 
 
+#### Ciclo de vida
+
+1. 
+
 ### Componentes funcionais
 
 1. 
 
-### Ciclo de vida
+#### Hooks
 
 1. 
 
@@ -404,7 +411,7 @@ import { connect } from 'react-redux'
 import { getUserDataAction } from '../redux/actions/actionTypes.js'
 ...
 const mapDispatchToProps = dispatch => ({
-  myFirstDispatch: (state) => dispatch(getUserDataAction(state)),
+  myFirstDispatch: (payload) => dispatch(getUserDataAction(payload)),
   });
   
   export default connect(null, mapDispatchToProps)(SecondComponent);
@@ -462,8 +469,9 @@ import PropTypes from 'prop-types'
 
  ```bash
 npm install redux react-redux
+npm install --save @redux-devtools/extension
 npm install redux-thunk
-npm install redux-logger
+npm install --save redux-logger
  ```
 
 2. Importações
@@ -471,6 +479,7 @@ npm install redux-logger
  ```javascript
  import { connect, Provider } from 'react-redux'
  import { createStore, combineReducers, applyMidleWare } from 'redux'
+ import { composeWithDevTools } from '@redux-devtools/extension'
  import thunk from 'redux-thunk'
  import logger from 'redux-logger'
  ```
@@ -622,7 +631,7 @@ const renderWithRouter = (component) => {
 };
 export default renderWithRouter;
 ```
-  * a função `render` agora está 'turbinada' com um `history` local
+  * A função `render` agora está 'turbinada' com um `history` local
 
 5. Importações
 
@@ -708,7 +717,7 @@ const renderWithRedux = (
 
 export default renderWithRedux
 ```
-  * a função `render` agora está 'turbinada' com o `store` do Redux
+  * A função `render` agora está 'turbinada' com o `store` do Redux
 
 6. Importações
 
@@ -800,7 +809,7 @@ const renderWithRouterAndRedux = (
 
 export default renderWithRouterAndRedux;
 ```
-  * a função `render` agora está 'turbinada' com o `history` do ReactRouter e o `store` do Redux
+  * A função `render` agora está 'turbinada' com o `history` do ReactRouter e o `store` do Redux
 
   5. Importações
 
