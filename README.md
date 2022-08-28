@@ -1,4 +1,4 @@
-falta moks
+falta moks, testes com redux e testes com reactrouter e redux
 # Iniciando um projeto com React,ReactRouter e Redux + testes
 
 ## Índice
@@ -43,8 +43,6 @@ falta moks
       * [RTL com ReactRouter](#rtl-com-reactrouter)
       * [RTL com Redux](#rtl-com-redux)
       * [RTL com ReactRouter e Redux](#rtl-com-reactrouter-e-redux)
-    * []()
-
 
 ## React
 
@@ -655,7 +653,75 @@ it('deve testar um caminho não existente e a renderização do Not Found', () =
 
 ##### RTL com Redux
 
+1. Tudo dito sobre RTL continua válido
+2. A forma de renderizar o componente muda para se ter acesso ao estado do Redux
+3. Agora é possível 
+4. Função auxiliar `renderWithRedux`
+5. O `Provider`deve estar no `src/index.js` e não no `src/App.js`, se não é impossivel renderizar o App com o store disponível 
+
+```javascript
+// src/tests/helpers/renderWithRedux.js
+import React from 'react';
+import { createStore, combineReducers } from 'redux';
+import { Provider } from 'react-redux';
+import { render } from '@testing-library/react';
+import reducer1 from './src/redux/reducers/reducer1'
+import reducer2 from './src/redux/reducers/reducer2'
+
+const renderWithRedux = (
+  component,
+  { initialState, store = createStore(combineReducers({ reducer1, reducer2 }), initialState) } = {}
+) => {
+  return {
+    ...render(<Provider store={store}>{component}</Provider>),
+    store,
+  }
+}
+```
+  * a função `render` agora está 'turbinada' com o `store` do Redux
+
+6. Importações
+
+```javascript
+// tests/App.test.js
+import React from 'react';
+import { cleanup, screen } from '@testing-library/react';
+import App from './App';
+```
+
+7. Assinatura dos testes
+
+```javascript
+// tests/App.test.js
+
+```
+
 ##### RTL com ReactRouter e Redux
+
+1. Tudo dito sobre RTL continua válido
+2. A forma de renderizar o componente muda para se ter acesso as propriedades do ReactRouter como `history` e `location.pathname` e ao estado do Redux
+3. Agora é possível navegar entre rotas através da `userEvent` (cliques) e do `history` (`history.push()`) e verificar a url atual através do `history.location.pathname` e 
+4. Função auxiliar `renderWithRouterAndRedux`
+
+```javascript
+// src/tests/helpers/renderWithRouterAndRedux.js
+
+```
+  * a função `render` agora está 'turbinada' com o `history` do ReactRouter e o `store` do Redux
+
+  5. Importações
+
+```javascript
+// tests/App.test.js
+
+```
+
+6. Assinatura dos testes
+
+```javascript
+// tests/App.test.js
+
+```
 
 
 
