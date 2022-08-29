@@ -771,8 +771,8 @@ it('deve testar um caminho não existente e a renderização do Not Found', () =
 3. Agora é possível acessar a variável `store` através da descontrução do método `renderWithRedux()`
 4. O `Provider` deve estar no `src/index.js` e não no `src/App.js`, se não é impossivel renderizar o App com o mock do `store` disponível 
 5. Função auxiliar `renderWithRedux`
-  * Importante se atentar para a estrutura do `store` original da aplicação, se tiver sido implementado com a função `combineReducer` (rootReducer) o mock também deve seguir essa implementação.
-  * Vale resaltar que assim como a `renderWithRouter()` não é necessário utilizar a `renderWithRedux()` sempre. Em caso de testes simples o mock pode ser feito diretamente no teste. 
+  * Importante se atentar para a estrutura do `store` original da aplicação, se tiver sido implementado com a função `combineReducer` (rootReducer) o mock também deve seguir essa implementação
+  * Vale resaltar que assim como a `renderWithRouter()` não é necessário utilizar a `renderWithRedux()` sempre. Em caso de testes simples o mock pode ser feito diretamente no teste
   * Sem o uso da função `combineReducers`
 
 ```javascript
@@ -800,7 +800,7 @@ const renderWithRedux = (
 
 export default renderWithRedux
 ```
-    * Ou diretamente no arquivo de testes
+  * Ou diretamente no arquivo de testes
 
 ```javascript
 // src/tests/App
@@ -856,7 +856,7 @@ const renderWithRedux = (
 export default renderWithRedux
 ```
 
-    * Ou diretamente no arquivo de testes
+  * Ou diretamente no arquivo de testes
 
 ```javascript
 // src/tests/App
