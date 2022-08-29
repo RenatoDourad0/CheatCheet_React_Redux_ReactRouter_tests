@@ -1,10 +1,11 @@
-falta definicoes react, moks, testes assíncrons com redux e testes com reactrouter e redux
+falta definicoes react, moks, testes com reactrouter e redux
 # Projeto com React, ReactRouter e Redux + testes
   
   * Com base no módulo de front-end da Trybe
   * Por [Renato Campos](https://github.com/RenatoDourad0)
 
 ## Índice
+  * [Local storage](#local-storage)
   * [React](#React)
     * [Instalação](#Instalação-React)
     * [No diretório `src`](#No-diretório-(/src))
@@ -43,11 +44,16 @@ falta definicoes react, moks, testes assíncrons com redux e testes com reactrou
     * [Node Assert](#node-assert)
     * [Jest](#jest)
       * [Moks](#moks)
+      * [`fetch-mock`](#fetch-mock)
     * [RTL](#rtl)
       * [RTL com ReactRouter](#rtl-com-reactrouter)
       * [RTL com Redux](#rtl-com-redux)
         * [Testes assíncronos com Redux](#testes-assíncronos-com-redux)
       * [RTL com ReactRouter e Redux](#rtl-com-reactrouter-e-redux)
+
+
+# Local storage
+
 
 ## React
 
@@ -542,6 +548,45 @@ describe('bloco de testes', () => {
 
 ##### Moks
 
+1. As Mock functions são ferramentas que nos permitem simular o comportamento de funções reais.
+
+###### `fetch-mock`
+
+1. Instalações 
+
+```bash
+  npm install node-fetch@^2
+  npm install --save-dev fetch-mock-jest
+```
+
+2. Importação 
+
+```javascript
+  import fetchMock from 'fetch-mock'
+```
+
+3. Uso
+  * [Documentação](https://www.wheresrhys.co.uk/fetch-mock/#api-mockingmock)
+  * Normalmente basta importar
+  * Chamada
+    * `fetchMock.getOnce(URL, { retorno experado })` mocka o fetch de um get uma vez durante aquele bloco de teste
+  * Asserção
+    * `fetchMock.called()` retorna true ou false se fetch tiver sido invocada
+    * `fetchMock.called(URL)` retorna true ou false se fetch tiver sido invocada com a URL especificada
+    * `fetchMock.lastCall()`, `fetchMock.lastUrl()` ou `fetchMock.lastOptions()` permite acessar os parametros passados a última chamada do fetch
+  * Teardown
+    * `fetchMock.resetHistory()` reset do histórico de chamadas
+    * `fetchMock.reset()` ou `fetchMock.restore()` também restaura o `fetch()` a sua implementação original
+
+```javascript
+  fetchMock.getOnce('https://dog.ceo/api/breeds/image/random', {
+      body: { message: 'myDogUrl' },
+    });
+  
+  userEvent.click(buttonDoguinho);
+  await waitFor(() => expect(fetchMock.called()).toBeTruthy());
+```
+
 #### RTL
 
 * [CheatSheet](./cheat-sheet-RTL.pdf)
@@ -615,6 +660,30 @@ test('renders the Component', async () => {
 2. A forma de renderizar o componente muda para se ter acesso as propriedades do ReactRouter
 3. Agora é possível navegar entre rotas através da `userEvent` (cliques) e do `history` (`history.push()`) e verificar a url atual através do `history.location.pathname`
 4. Função auxiliar `renderWithRouter`
+  * Importante ressaltar que não é necessário utilizar a função para realizar os testes. Em alguns casos de testes simples essa renderização especial pode ser feita de forma direta no próprio teste.
+    * Para isso basta criar um histórico mockado e chamar a função `render` envolvedo o componente a ser renderizado em um `Route`
+```javascript
+// src/tests/App
+import React from 'react';
+import { Router } from 'react-router-dom';
+import { createMemoryHistory } from 'history';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import Component from '{ path to component }'
+
+test('description', () => {
+const initialEntries = ['/'];
+const history = createMemoryHistory({ initialEntries });
+render(
+  <Router history={ history }>
+    {component}
+  </Router>
+  );
+  ...test
+})
+```
+
+  * `renderWithRouter`
 
 ```javascript
 // src/tests/helpers/renderWithRouter.js
@@ -623,8 +692,8 @@ import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { render } from '@testing-library/react';
 
-const renderWithRouter = (component) => {
-  const history = createMemoryHistory();
+const renderWithRouter = (component, initialEntries = ['/']) => {
+  const history = createMemoryHistory({ initialEntries });
   return ({
     ...render(<Router history={ history }>{component}</Router>), history,
   });
@@ -650,6 +719,11 @@ import Component from '{ path to Component }';
 // tests/App.test.js
 it('descrição', () => {
   const { history } = renderWithRouter(<App />);
+  const { pathname } = history.location;
+});
+
+it('descrição', () => {
+  const { history } = renderWithRouter(<App />, ['/login']);
   const { pathname } = history.location;
 });
 ```
@@ -682,15 +756,23 @@ it('deve testar um caminho não existente e a renderização do Not Found', () =
       { name: 'Página não encontrada' });
     expect(notFoundTitle).toBeInTheDocument();
   });
+
+  it('descrição', () => {
+  const { history } = renderWithRouter(<App />, ['/login']);
+  const { pathname } = history.location;
+  expect(pathname).toBe('/login');
+});
 ```
 
 ##### RTL com Redux
 
 1. Tudo dito sobre RTL continua válido
 2. A forma de renderizar o componente muda para se ter acesso ao estado do Redux
-3. Agora é possível ...
+3. Agora é possível acessar a variável `store` através da descontrução do método `renderWithRedux()`
 4. O `Provider` deve estar no `src/index.js` e não no `src/App.js`, se não é impossivel renderizar o App com o mock do `store` disponível 
 5. Função auxiliar `renderWithRedux`
+  * Importante se atentar para a estrutura do `store` original da aplicação, se tiver sido implementado com a função `combineReducer` (rootReducer) o mock também deve seguir essa implementação.
+  * Vale resaltar que assim como a `renderWithRouter()` não é necessário utilizar a `renderWithRedux()` sempre. Em caso de testes simples o mock pode ser feito diretamente no teste. 
   * Sem o uso da função `combineReducers`
 
 ```javascript
@@ -714,9 +796,32 @@ const renderWithRedux = (
       </Provider>
       ),
     store,
-})
+});
 
 export default renderWithRedux
+```
+    * Ou diretamente no arquivo de testes
+
+```javascript
+// src/tests/App
+import React from 'react';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
+import rootReducer from './src/redux/reducers/index'
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import Component from '{ path to component }'
+
+test('description', () => {
+  const initialState = {};
+  const store = createStore(rootReducer, initialState);
+  render(
+    <Provider store={ store }>
+      <Component />
+    </Provider>
+    );
+    ...test
+});
 ```
 
   * Com o uso da função `combineReducers`
@@ -750,7 +855,31 @@ const renderWithRedux = (
 
 export default renderWithRedux
 ```
-* Importante se atentar para a estrutura do `store` original da aplicação, se tiver sido implementado com a função `combineReducer` (rootReducer) o mock também deve seguir essa implementação.
+
+    * Ou diretamente no arquivo de testes
+
+```javascript
+// src/tests/App
+import React from 'react';
+import { createStore, combineReducers } from 'redux';
+import { Provider } from 'react-redux';
+import Reducer1 from './src/redux/reducers/Reducer1'
+import Reducer2 from './src/redux/reducers/Reducer2'
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import Component from '{ path to component }'
+
+test('description', () => {
+  const initialState = {};
+  const store = createStore(combineReducers({ reducer1, reducer2 }), initialState);
+  render(
+    <Provider store={ store }>
+      <Component />
+    </Provider>
+    );
+    ...test
+});
+```
 * A função `render` agora está 'turbinada' com um mock do `store` da aplicação
 
 6. Importações
@@ -774,23 +903,97 @@ test('descrição', () => {
 })
 ```
 
-  * Quando chamada sem o segundo argumento trás para o `store` os valores definidos no initial_state da aplicação
+  * Quando chamada sem o segundo argumento trás para o `store` os valores definidos no `INITIAL_STATE` da aplicação
   * O segundo argumento deve ser um objeto que respeita a estrutura ``` { initialState: { nomeReducer }: { nomePropriedade: valorPropriedade }} ``` no caso do store ter sido definido com a função `combineReducers` ou ``` { initialState: { nomePropriedade: valorPropriedade }} ``` no caso do store ter somente um reducer
 8. Assinatura dos testes
 
 ```javascript
 // tests/App.test.js
+describe('testing clicks', () => {
+  beforeEach(cleanup);
+  test('the page should have a button and a text 0', () => {
+    renderWithRedux(<App />);
+    const buttonAdicionar = screen.queryByText('Clique aqui');
 
+    expect(buttonAdicionar).toBeInTheDocument();
+    expect(screen.getByText('0')).toBeInTheDocument();
+  });
+
+  test('a click in a button should increment the value of clicks', () => {
+    const { store } = renderWithRedux(<App />, { initialState: { clickReducer: { counter: 5 } } });
+
+    expect(store.clickReducer.counter).toBe(5);
+    expect(screen.getByText('5')).toBeInTheDocument();
+  });
+});
 ```
+  * 
 
 ###### Testes assíncronos com Redux
 
+  1. A função `renderWithRedux()` deve ser tratada com o `thunk` para aceitar comportamento assíncrono 
+
+```javascript
+// src/tests/helpers/renderWithRedux.js
+import React from 'react';
+import { createStore, combineReducers, applyMiddleware } from 'redux';
+import { Provider } from 'react-redux';
+import thunk from 'redux-thunk';
+import { render } from '@testing-library/react';
+import reducer1 from './src/redux/reducers/reducer1'
+import reducer2 from './src/redux/reducers/reducer2'
+
+const renderWithRedux = (
+  component,
+  { 
+    initialState = {}, 
+    store = createStore(combineReducers({ reducer1, reducer2 }), initialState, applyMiddleware(thunk)),
+  } = {}
+) => ({
+    ...render(
+      <Provider store={store}>
+        {component}
+      </Provider>
+      ),
+    store,
+})
+
+export default renderWithRedux
+```
+
+2. Estrutura do teste
+
+```javascript
+// src/App.test.js
+import { waitFor, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import React from 'react';
+import fetchMock from 'fetch-mock-jest';
+import App from './App';
+import renderWithRedux from './helper';
+
+describe('Página principal', () => {
+  test('Testa que o botão de adicionar cachorro está presente', async () => {
+    renderWithRedux(<App />);
+    const buttonDoguinho = screen.queryByText('Novo Doguinho');
+
+    expect(buttonDoguinho).toBeInTheDocument();
+
+    fetchMock.getOnce('https://dog.ceo/api/breeds/image/random', {
+      body: { message: 'myDogUrl' },
+    });
+
+    userEvent.click(buttonDoguinho);
+    await waitFor(() => expect(fetchMock.called()).toBeTruthy());
+  });
+});
+```
 
 ##### RTL com ReactRouter e Redux
 
 1. Tudo dito sobre RTL continua válido
 2. A forma de renderizar o componente muda para se ter acesso as propriedades do ReactRouter como `history` e ao estado do Redux
-3. Agora é possível navegar entre rotas através da `userEvent` (cliques) e do `history` (`history.push()`) e verificar a url atual através do `history.location.pathname` e ...
+3. Agora é possível navegar entre rotas através da `userEvent` (cliques) e do `history` (`history.push()`), verificar a url atual através do `history.location.pathname` e ter acesso ao `store`
 4. Função auxiliar `renderWithRouterAndRedux`
 
 ```javascript
@@ -861,10 +1064,3 @@ export default renderWithRouterAndRedux;
 // tests/App.test.js
 
 ```
-
-
-
-
-
-
-
