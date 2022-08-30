@@ -441,7 +441,7 @@ import PropTypes from 'prop-types'
 
 3. Diretrizes:
   * Start: ``` npm start ```
-  * Test: ``` npm test ``` ou ``` npm test -- --coverage ``` ou ``` npm run test:coverage ```
+  * Test: ``` npm test ``` ou ``` npm test -- --coverage ``` ou ``` npm run test-coverage ``` ou ``` npm run test-coverage -- --collectCoverageFrom=caminho/da/Pagina ``` ou ainda, em caso de uso do Cypress `npm run cy:open`
   * Build: ``` npm run build ```
   * Deploy com gh-pages: 
     * Dentro do diretório do projeto: ``` npm install gh-pages ```
@@ -548,7 +548,7 @@ describe('bloco de testes', () => {
 
 ##### Moks
 
-1. As Mock functions são ferramentas que nos permitem simular o comportamento de funções reais.
+1. Mocks permitem simular o comportamento de funções reais com retorno imprevisivel de forma previsivel.
 
 ###### `fetch-mock`
 
@@ -576,7 +576,7 @@ describe('bloco de testes', () => {
     * `fetchMock.lastCall()`, `fetchMock.lastUrl()` ou `fetchMock.lastOptions()` permite acessar os parametros passados a última chamada do fetch
   * Teardown
     * `fetchMock.resetHistory()` reset do histórico de chamadas
-    * `fetchMock.reset()` ou `fetchMock.restore()` também restaura o `fetch()` a sua implementação original
+    * `fetchMock.reset()` ou `fetchMock.restore()` restaura o `fetch()` a sua implementação original
 
 ```javascript
   fetchMock.getOnce('https://dog.ceo/api/breeds/image/random', {
@@ -1062,5 +1062,5 @@ export default renderWithRouterAndRedux;
 
 ```javascript
 // tests/App.test.js
-
+const { history, store } = renderWithRouterAndRedux()
 ```
