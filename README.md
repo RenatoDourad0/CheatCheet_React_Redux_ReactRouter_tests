@@ -1,5 +1,5 @@
-falta definicoes react, moks, testes com reactrouter e redux
-# Projeto com React, ReactRouter e Redux + testes
+falta definicoes react, localStorage, estilos: fontAwsame, bulma, sass, animações?
+# CheatSheet React, ReactRouter, Redux e testes
   
   * Com base no módulo de front-end da Trybe
   * Por [Renato Campos](https://github.com/RenatoDourad0)
@@ -7,13 +7,14 @@ falta definicoes react, moks, testes com reactrouter e redux
 ## Índice
   * [Local storage](#local-storage)
   * [React](#React)
-    * [Instalação](#Instalação-React)
+    * [Instalação](#Instalação-React)    
     * [No diretório `src`](#No-diretório-(/src))
     * [Importações comuns](#Importações-comuns-React)
     * [Componentes de classe](#Componentes-de-classe)
       * [Ciclo de vida](#Ciclo-de-vida)
     * [Componentes funcionais](#Componentes-funcionais)
       * [Hooks](#Hooks)
+    * [Renderização condicional](#Renderização-condicional)
   * [ReactRouter](#ReactRouter)
     * [Instalação](#Instalação-ReactRouter)
     * [No arquivo `index.js`](#No-arquivo-(index.js))
@@ -28,7 +29,7 @@ falta definicoes react, moks, testes com reactrouter e redux
     * [No diretório `src`](#No-diretório-src)
     * [No diretório `redux`](#No-diretório-redux)
     * [No diretório `reducers`](#No-diretório-reducers)
-    * [No diretório `store`](#No-diretório-store)
+    * [No arquivo `store.js`](#No-arquivo-(store.js))
     * [No diretório `actions`](#No-diretório-actions)
         * [Actions assíncronas com thunk](#Actions-assíncronas-com-thunk)
           * [No arquivo `src/redux/index.js`](#No-arquivo-(src/redux/index.js))
@@ -91,6 +92,8 @@ falta definicoes react, moks, testes com reactrouter e redux
 
 1. 
 
+### Renderização condicional
+
 
 ## ReactRouter
 
@@ -122,8 +125,8 @@ root.render(
 ### No diretório `src/components`
 
 1. Criar o arquivo `Routes.js` e importar `Route` e `Switch`
-2. Importar componentes/páginas referentes as rotas
-3. Rotas que renderizam componentes sem props podem utilizar o `component={ Componet }`. Rotas que renderizam componentes que precisam de props devem usar a `render={ (props) => <Componet { ...props } (+ outras props) /> }`
+  * Importar componentes/páginas referentes as rotas
+  * Rotas que renderizam componentes sem props podem utilizar o `component={ Componet }`. Rotas que renderizam componentes que precisam de props devem usar a `render={ (props) => <Componet { ...props } (+ outras props) /> }`
 
 ```javascript
 // src/components/Routes.js
@@ -133,8 +136,8 @@ import Component2 from '../pages/Component2'
 import Component3 from '../pages/Component3'
 import NotFound from '../pages/NotFound'
 
-function Routes() {
-  const name = ...
+function Routes(props) {
+  const { name } = props;
   return (
       <Switch>
         <Route
@@ -151,13 +154,35 @@ function Routes() {
 
 export default Routes;
 ```
+
+2. Criar o arquivo `Navegation.js` e importar `Link`
+
+```javascript
+// src/components/Navegation.js
+import { Link } from 'react-router-dom';
+
+function Navegation() {
+  return (
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/js">JavaScript</Link>
+        <Link to="/react">React</Link>
+      </nav>
+  )
+};
+
+export default Navegation;
+```
+
 ### No arquivo `src/App.js`
 
-1. No arquivo `src/App.js` importar e renderizar o componente `Routes`
+1. No arquivo `src/App.js` importar e renderizar os componentes `Routes` e `Navegation`
+2. Local ideial para fazer um componente de navegação
 
 ```javascript
 // src/App.js
-import Routes from "./components/Routes";
+import Routes from "./components/Routes.js";
+import Navegation from "./components/Navegation.js"
 
 function App() {
   return (
@@ -207,10 +232,10 @@ export default App;
 3. middlewares comuns: ``` npm install --save redux-logger / npm install redux-thunk ```
 
 ### No diretório `src`
-1. Criar no diretório `redux`
+1. Criar o diretório `redux`
 
 ### No diretório `redux`
-1. Criar o diretório `store`
+1. Criar o arquivo `store.js`
 2. Criar o diretório `actions`
 3. Criar o diretório `reducers`
 
@@ -257,14 +282,13 @@ const rootReducer = combineReducers({ userReducer. nameReducer2 });
 export default rootReducer;
 ```
 
-### No diretorio `store`
-1. Criar o arquivo `index.js`
-2. Importar o `rootReducer`
-3. Importar o `DevTools` do `@redux-devtools/extension`
-4. Importar `createStore` e `applyMiddleware` do `redux`
-5. Importar midleweres necessários (ex: `thunk` e `logger`)
-6. Chamar a função `createStore` passando como parâmentro o `rootReducer` e a `composeWithDevtools`
-7. (opcional) Como parâmetro da função `composeWithDevtools` chamar a função `applyMiddleware`, passando os middlewares desejados
+### No arquivo `store.js`
+1. Importar o `rootReducer`
+2. Importar o `DevTools` do `@redux-devtools/extension`
+3. Importar `createStore` e `applyMiddleware` do `redux`
+4. Importar midleweres necessários (ex: `thunk` e `logger`)
+5. Chamar a função `createStore` passando como parâmentro o `rootReducer` e a `composeWithDevtools`
+6. (opcional) Como parâmetro da função `composeWithDevtools` chamar a função `applyMiddleware`, passando os middlewares desejados
 
 ```javascript
 // src/redux/store/index.js
@@ -275,6 +299,31 @@ import logger from 'redux-logger'; // console.log() mudanças de estado do redux
 import rootReducer from '../reducers';
 
 const store = createStore(rootReducer, composeWithDevTools(applyMiddleware(logger)));
+
+export default store;
+``` 
+
+7. Funções `subscribe` e `getState` do `store`
+  * A ``` store.subscribe() ``` permite que uma ação seja executada sempre após o estado ser alterado.
+  * ``` store.getState() ``` permite acessar o estado do store
+
+```javascript
+// src/redux/store/index.js
+
+{...}
+const store = createStore(rootReducer, composeWithDevTools(applyMiddleware(logger)));
+
+store.subscribe(() => {
+  const state = store.getState();
+  const { wallet: { expenses } } = state;
+  const savedExpenses = JSON.parse(localStorage.getItem('expenses')) || [];
+  if (expenses.length !== 0) {
+    localStorage.setItem('expenses', JSON.stringify(expenses))
+  };
+  if (expenses.length === 0 && savedExpenses.length === 1) {
+    localStorage.setItem('expenses', JSON.stringify(expenses))
+  };
+})
 
 export default store;
 ``` 
@@ -329,28 +378,29 @@ export default store;
 
 ##### No arquivo `src/redux/actions/{sua_action}`
 
-1. O `thunk` permite que as action creators façam mais do que retornar uma simples `action`. A ultima função deste exemplo mostra seu funcionamento.
-2. As action creators assíncronas retornam uma função anônima que tem acesso ao método `dispatch`, a partir dai é possível chamar novas action creators comuns
-3. Repare que somente a função `fetchJsSubreddit` é exportada, usando das outras action creators após cada passo do processo assincrono ( primeiro `dispatch` - altera estado `isLoading` / segundo `dispatch` - sava o retorno da api no estado em caso de sucesso / terceiro `dispatch` - salva o erro da api no estado em caso de falha )
+1. O `thunk` permite que as action creators façam mais do que retornar uma simples `action`. As ultimas funções deste exemplo mostram seu funcionamento
+  * As action creators assíncronas retornam uma função anônima que tem acesso ao método `dispatch`, a partir dai é possível chamar novas action creators síncronas que alteram o estado do redux com os dados do processo assíncrono
+  * Repare que somente a função `fetchJsSubredditAction` é exportada, usando das outras action creators após cada passo do processo assincrono ( primeiro `dispatch` - altera estado `isLoading` / segundo `dispatch` - sava o retorno da api no estado em caso de sucesso / terceiro `dispatch` - salva o erro da api no estado em caso de falha )
+  * (boa pratica ?) É possível também retornar o dado assíncrono diretamente, sem passar para um actionCreator síncrono salvar no `store`. Para isso é preciso importar e usar a função no componente , como no caso da `fetchExchangeRatesAction`
 
 ```javascript
 import { REQUEST_JS_SUBREDDIT, GET_JS_SUBREDDIT_DATA, GET_JS_SUBREDDIT_ERROR} from'./action_types';
 
-const requestJsSubreddit = () => ({
+const requestJsSubredditAction = () => ({
   type: REQUEST_JS_SUBREDDIT,
 });
 
-const getJsSubredditData = (payload) => ({
+const getJsSubredditDataAction = (payload) => ({
   type: GET_JS_SUBREDDIT_DATA,
   payload
 });
 
-const getJsSubredditError = (payload) => ({
+const getJsSubredditErrorAction = (payload) => ({
   type: GET_JS_SUBREDDIT_ERROR,
   payload
 });
 
-export const fetchJsSubreddit = (subreddit) => {
+export const fetchJsSubredditAction = (subreddit) => {
   return (dispatch) => {
     dispatch(requestJsSubreddit());
     return fetch(`https://www.reddit.com/r/${subreddit}.json`)
@@ -359,6 +409,10 @@ export const fetchJsSubreddit = (subreddit) => {
       .catch((error) => dispatch(getJsSubredditError(error)))
   }
 };
+
+export const fetchExchangeRatesAction = () => () => fetch('https://economia.awesomeapi.com.br/json/all')
+  .then((response) => response.json())
+  .then((data) => (data));
 ```
 
 ### No arquivo `src/index.js`
@@ -456,6 +510,8 @@ import PropTypes from 'prop-types'
           "deploy" : "gh-pages -d build"
         }
 ```
+
+  * No arquivo ``` Routes.js ``` alterar o path da rota principal de `/` para `/{nome-do-diretório}`
   * 
     * ```npm run deploy```
     * Em caso de erro ``` gh ... já existente ``` apagar a pasta `gh-pages` em ``` node-modules/.cache ```
@@ -507,6 +563,7 @@ npm install --save redux-logger
 #### Jest
 
 1. Instalação: ``` npm install --save-dev jest ```
+  * sujestão de texto: ``` npm install @types/jest ```
 2. No `package.json`, na chave `scripts` alterar a chave `test` para `jest`
 
 ```javascript
@@ -548,9 +605,11 @@ describe('bloco de testes', () => {
 
 ##### Moks
 
-1. Mocks permitem simular o comportamento de funções reais com retorno imprevisivel de forma previsivel.
+1. Mocks permitem simular o comportamento de funções reais e com retorno imprevisivel de forma previsivel.
 
 ###### `fetch-mock`
+
+  * Biblioteca auxiliar para mockar o `fetch`.
 
 1. Instalações 
 
@@ -567,9 +626,12 @@ describe('bloco de testes', () => {
 
 3. Uso
   * [Documentação](https://www.wheresrhys.co.uk/fetch-mock/#api-mockingmock)
+  * [CheatSheet](https://github.com/wheresrhys/fetch-mock/blob/master/docs/cheatsheet.md)
   * Normalmente basta importar
   * Chamada
-    * `fetchMock.getOnce(URL, { retorno experado })` mocka o fetch de um get uma vez durante aquele bloco de teste
+    * `fetchMock.getOnce(URL, { retorno experado })` é a forma mais simples de mockar o `fetch` de um get uma vez durante aquele bloco de teste. 
+      * `URL` é o endpoit chamado na implementação original e `retorno esperado` a resposta esperada da requisição original
+    * existem outras formas de se usar, consultar cheatSheet.
   * Asserção
     * `fetchMock.called()` retorna true ou false se fetch tiver sido invocada
     * `fetchMock.called(URL)` retorna true ou false se fetch tiver sido invocada com a URL especificada
@@ -577,6 +639,8 @@ describe('bloco de testes', () => {
   * Teardown
     * `fetchMock.resetHistory()` reset do histórico de chamadas
     * `fetchMock.reset()` ou `fetchMock.restore()` restaura o `fetch()` a sua implementação original
+    * fazer o `fetchMock.restore()` no `afterEach()` dos blocos `describe`
+    * Importante! O `fetchMock.getOnce()` mocka somente uma chamada ao `fetch`. Então se o teste faz mais de uma chamada deve ser feito um `fetchMock.restore()` entre estas chamadas e uma nova implementação deve ser feita (um novo `fetchMock.getOnce()`) 
 
 ```javascript
   fetchMock.getOnce('https://dog.ceo/api/breeds/image/random', {
@@ -585,6 +649,16 @@ describe('bloco de testes', () => {
   
   userEvent.click(buttonDoguinho);
   await waitFor(() => expect(fetchMock.called()).toBeTruthy());
+
+  fetchMock.restore();
+
+  fetchMock.getOnce('https://dog.ceo/api/breeds/image/random', {
+      body: { message: 'myDogUrl' },
+    });
+
+  userEvent.click(buttonDoguinho);
+  await waitFor(() => expect(fetchMock.called()).toBeTruthy());
+  fetchMock.restore();
 ```
 
 #### RTL
@@ -662,6 +736,7 @@ test('renders the Component', async () => {
 4. Função auxiliar `renderWithRouter`
   * Importante ressaltar que não é necessário utilizar a função para realizar os testes. Em alguns casos de testes simples essa renderização especial pode ser feita de forma direta no próprio teste.
     * Para isso basta criar um histórico mockado e chamar a função `render` envolvedo o componente a ser renderizado em um `Route`
+    * É possivel passar a rota a ser renderizada na propriedade `initialEntries`, um array de strings
 ```javascript
 // src/tests/App
 import React from 'react';
@@ -679,7 +754,7 @@ render(
     {component}
   </Router>
   );
-  ...test
+  {...}
 })
 ```
 
@@ -728,6 +803,10 @@ it('descrição', () => {
 });
 ```
 
+  * O primeiro argumento é o componente a ser renderizado
+  * O segundo argumento é a rota a ser renderizada, um array de strings
+  * Se descontroi a propriedade `history` na chamada da função
+
 7. Assinatura dos testes
 
 ```javascript
@@ -768,7 +847,7 @@ it('deve testar um caminho não existente e a renderização do Not Found', () =
 
 1. Tudo dito sobre RTL continua válido
 2. A forma de renderizar o componente muda para se ter acesso ao estado do Redux
-3. Agora é possível acessar a variável `store` através da descontrução do método `renderWithRedux()`
+3. Agora é possível acessar a variável `store` através da descontrução da função `renderWithRedux()`
 4. O `Provider` deve estar no `src/index.js` e não no `src/App.js`, se não é impossivel renderizar o App com o mock do `store` disponível 
 5. Função auxiliar `renderWithRedux`
   * Importante se atentar para a estrutura do `store` original da aplicação, se tiver sido implementado com a função `combineReducer` (rootReducer) o mock também deve seguir essa implementação
@@ -803,7 +882,7 @@ export default renderWithRedux
   * Ou diretamente no arquivo de testes
 
 ```javascript
-// src/tests/App
+// src/tests/App.test.js
 import React from 'react';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
@@ -820,7 +899,7 @@ test('description', () => {
       <Component />
     </Provider>
     );
-    ...test
+    {...}
 });
 ```
 
@@ -859,7 +938,7 @@ export default renderWithRedux
   * Ou diretamente no arquivo de testes
 
 ```javascript
-// src/tests/App
+// src/tests/App.test.js
 import React from 'react';
 import { createStore, combineReducers } from 'redux';
 import { Provider } from 'react-redux';
@@ -877,7 +956,7 @@ test('description', () => {
       <Component />
     </Provider>
     );
-    ...test
+    {...}
 });
 ```
 * A função `render` agora está 'turbinada' com um mock do `store` da aplicação
@@ -889,8 +968,11 @@ test('description', () => {
 import React from 'react';
 import { cleanup, screen } from '@testing-library/react';
 import renderWithRedux from './helpers/renderWithRedux'
+import userEvent from '@testing-library/user-event';
 import Componet from '{ path to Component }';
 ```
+
+  * O `cleanUp` limpa da memória o que tiver sido renderizado na função render. É um comportamento automático no Jest, mas pode ser necessário.
 
 7. Assinatura da função `renderWithRedux`
 
@@ -927,7 +1009,6 @@ describe('testing clicks', () => {
   });
 });
 ```
-  * 
 
 ###### Testes assíncronos com Redux
 
@@ -965,7 +1046,7 @@ export default renderWithRedux
 
 ```javascript
 // src/App.test.js
-import { waitFor, screen } from '@testing-library/react';
+import { waitFor, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import fetchMock from 'fetch-mock-jest';
@@ -973,6 +1054,7 @@ import App from './App';
 import renderWithRedux from './helper';
 
 describe('Página principal', () => {
+  beforeEach(cleanup);
   test('Testa que o botão de adicionar cachorro está presente', async () => {
     renderWithRedux(<App />);
     const buttonDoguinho = screen.queryByText('Novo Doguinho');
@@ -985,6 +1067,8 @@ describe('Página principal', () => {
 
     userEvent.click(buttonDoguinho);
     await waitFor(() => expect(fetchMock.called()).toBeTruthy());
+
+    fetchMock.reset()
   });
 });
 ```
@@ -1002,31 +1086,25 @@ import React from 'react';
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { render } from '@testing-library/react';
-
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
+import { createStore, (applyMiddleware) } from 'redux';
+(import thunk from "react-thunk")
 import rootReducer from '../../redux/reducers';
 
 const renderWithRouterAndRedux = (
-  component, // componente a ser renderizado
+  component,
   {
-    // estado inicial para o nosso reducer
     initialState = {},
 
-    // caso você passe uma store por parâmetro ela será utilizada
-    // caso contrário vai chamar a função createStore e criar uma nova
+    // sem thunk
     store = createStore(rootReducer, initialState),
+    // com thunk 
+    store = createStore(rootReducer, initialState, applyMiddleware(thunk)),
 
-    // rota inicial da nossa aplicação
     initialEntries = ['/'],
-
-    // caso você passe um history por parâmetro ele será utilizado
-    // caso contrário vai chamar a função createMemotryHistory e criar um novo
     history = createMemoryHistory({ initialEntries }),
   } = {},
-) => ({ // arrow function que retorna um objeto
-
-  // spread do retorno do render { getByTestId, getByRole, etc }
+) => ({
   ...render(
     <Router history={ history }>
       <Provider store={ store }>
@@ -1034,17 +1112,9 @@ const renderWithRouterAndRedux = (
       </Provider>
     </Router>,
   ),
-
-  // history usado acima
   history,
-
-  // store usada acima
   store,
 });
-
-// resultado dessa função:
-// renderiza o componente no teste
-// retorna um objeto contendo { store, history, getByTestId, getByRole, etc }
 
 export default renderWithRouterAndRedux;
 ```
@@ -1053,14 +1123,85 @@ export default renderWithRouterAndRedux;
 
 ```javascript
 // tests/App.test.js
-
+import React from 'react';
+import { cleanup, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import renderWithRedux from './helpers/renderWithRedux'
+import fetchMock from 'fetch-mock-jest';
+import Componet from '{ path to Component }';
 ```
 
 6. Assinatura da função `renderWithRouterAndRedux`
 
-7. Assinatura dos testes
+```javascript
+// tests/App.test.js
+import store from "../redux/store.js"
+
+const I_S = {...}
+
+// cria um novo store com o estado inicial da aplicação e um novo history com initialEntries '/'
+const { history, store } = renderWithRouterAndRedux(<App />);
+
+// cria um novo store com o estado inicial passado como argumento e um novo history com initialEntries '/'
+const { history, store } = renderWithRouterAndRedux(<App />, { initialState: I_S });
+
+// cria um novo store com o estado inicial passado como argumento e um novo history com initialEntries igual a passada como argumento
+const { history, store } = renderWithRouterAndRedux(<App />, {
+  initialState: I_S,
+  initialEntries: ['/login'],
+  });
+
+// Utiliza o store original da aplicação e cria um novo history com initialEntries igual a passada como argumento
+const { history, store } = renderWithRouterAndRedux(<App />, {
+store: store,
+initialEntries: ['/login'],
+  });
+```
+
+7. Estrutura dos testes
 
 ```javascript
 // tests/App.test.js
-const { history, store } = renderWithRouterAndRedux()
+import React from 'react';
+import { cleanup, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import renderWithRouterAndRedux from './helpers/renderWithRedux'
+import fetchMock from 'fetch-mock-jest';
+import Componet from '{ path to Component }';
+
+describe('Página principal', () => {
+  beforeEach(cleanup);
+
+  const initialState = {};
+  const mockData = {};
+
+  test('a despesa é adicionada ao store se preenchido corretamente', async () => {
+    const { history, store } = renderWithRouterAndRedux(<App />, {
+      initialState: initialState,
+      initialEntries: ['/carteira'],
+    });
+
+    fetchMock.getOnce(URL, { ...mockData });
+
+    const valueInputField = screen.getByLabelText(/valor:/i);
+    const descriptionInputField = screen.getByLabelText(/Descrição:/i);
+    const submitButton = screen.getByRole('button', { name: /adicionar despesa/i });
+
+    userEvent.type(valueInputField, '10');
+    userEvent.type(descriptionInputField, 'a');
+
+    userEvent.click(submitButton);
+
+    await waitFor(() => expect(fetchMock.calls().length).toBe(1));
+
+    fetchMock.restore();
+
+    const expese1 = screen.getAllByText('a');
+    const expese2 = screen.getAllByText('10.00');
+
+    expect(expese2.length).toBe(1);
+    expect(expese1.length).toBe(1);
+    expect(store.wallet.expeses.length).toBe(1);
+  });
+});
 ```
