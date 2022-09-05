@@ -1,11 +1,12 @@
-falta definicoes react, localStorage, estilos: fontAwsame, bulma, sass, animações?
+falta definicoes react, estilos: fontAwsame, bulma, sass, animações?
 # CheatSheet React, ReactRouter, Redux e testes
   
   * Com base no módulo de front-end da Trybe
   * Por [Renato Campos](https://github.com/RenatoDourad0)
 
 ## Índice
-  * [Local storage](#local-storage)
+  * [LocalStorage](#localStorage)
+    * [LocalStoage com redux](#LocalStoage-com-redux)
   * [React](#React)
     * [Instalação](#Instalação-React)    
     * [No diretório `src`](#No-diretório-(/src))
@@ -51,10 +52,43 @@ falta definicoes react, localStorage, estilos: fontAwsame, bulma, sass, animaç�
       * [RTL com Redux](#rtl-com-redux)
         * [Testes assíncronos com Redux](#testes-assíncronos-com-redux)
       * [RTL com ReactRouter e Redux](#rtl-com-reactrouter-e-redux)
+  * [Estilização](#Estilização)
+    * [fontAwesome](#fontAwesome)
+    * [Bulma](#bulma)
+    * [Sass](#Sass)
 
 
-# Local storage
+## LocalStorage
 
+1. Para salvar dados não primitivos
+  * `localStorage.setItem('item', JSON.stringify(data))`
+
+2. Para buscar dados não primitivos
+  * `JSON.parse(localStorage.getItem('item'))`
+
+3. Para limpar dados
+  * limpar todos os dados - `localStorage.clear()`
+  * limpar um item - `localStorage.removeItem('item')`
+
+### LocalStoage com redux
+
+1. Usar a função `subscribe` do `store` para atualizar as informações salvas no `localStorage`
+  * No arquivo `redux/store.js` 
+    * Chamar a `store.subscribe(() => { })` e dentro dela a `store.getState('item')` para buscar as informações salvas no store.
+    * Chamar `JSON.parse(localStorage.getItem('item'))` e comparar se houve mudança entra a informação do store e do localStorage.
+    * caso tenha tido mudanças chamar `localStorage.setItem('item', JSON.stringify(storeData))` para atualizar o localStorage
+
+```javascript
+// src/redux/store.js
+{ ... }
+store.subscribe(() => {
+  const storeData = store.getState();
+  const localStorageData = JSON.parse(localStorage.getItem('item'));
+  if (storeData.item.length > localStorageData.length) {
+    localStorage.setItem('item', JSON.stringify(storeData))
+  }
+})
+```
 
 ## React
 
@@ -122,6 +156,7 @@ root.render(
   </React.StrictMode>
 );
 ```
+
 ### No diretório `src/components`
 
 1. Criar o arquivo `Routes.js` e importar `Route` e `Switch`
@@ -1205,3 +1240,117 @@ describe('Página principal', () => {
   });
 });
 ```
+
+## Estilização
+
+### fontAwesome
+
+1. [Documentação](https://fontawesome.com/start)
+
+#### Com CDN
+
+#### Com React
+
+1. Instalação
+
+```javascript
+npm install --save @fortawesome/fontawesome-svg-core // pacote base
+npm install --save @fortawesome/free-solid-svg-icons // icones sólidos
+npm install --save @fortawesome/free-regular-svg-icons // icones comuns
+npm install --save @fortawesome/react-fontawesome@latest // componente react
+```
+
+2. Importação
+  * pesquisar na documentação o nome do icone a ser importado
+
+```javascript
+import { faEnvelope, faKeyboard, nome_do_icone } from '@fortawesome/free-regular-svg-icons';
+import { faWallet, faCoins } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+```
+
+3. Uso
+
+```javascript
+<FontAwesomeIcon icon={faCoins} />
+```
+
+  * verificar opções de estilização [aqui](https://fontawesome.com/docs/web/use-with/react/style)
+
+### Bulma
+
+1. [Documentação](https://bulma.io/documentation/overview/start/)
+
+
+### Sass
+
+1. [Documentação](https://sass-lang.com/guide)
+
+2. Organização
+  * criar pasta styles
+    * criar arquivo main.scss - aonde serão importados todos os arquivos
+    * criar arquivo _base.scss - estilos globais, css reset
+    * criar arquivo _colors.scss - definição de cores
+    * criar arquivo components.scss - estilo de componentes específicos
+    * criar arquivo layout.scss - posicionamento e forma dos componentes
+
+3. Instalação
+
+```javascript
+npm install sass
+```
+
+4. Importação
+  * A ordem de importação é importante.
+
+```css
+/* /src/styles/main.scss */
+
+@import '_colors.scss';
+@import 'base.scss';
+@import 'components.scss';
+@import 'layout.scss';
+```
+
+```css
+/* /src/index.js */
+
+import './styles/main.scss';
+```
+
+4. Uso
+  * Variaveis
+
+```css
+/* /src/styles/_colors.scss */
+$nome_da_variavel: #ffffff;
+
+/* /src/styles/components.scss */
+.component_class {
+  background: $nome_da_variavel;
+}
+```
+
+  * Nesting
+
+```css
+/* /src/styles/components.scss */
+
+a {
+  display: block;
+  padding: 6px 12px;
+
+  &:hover {
+    color: red;
+  }
+
+  strong {
+    font-weight: bolder;
+  }
+  }
+```
+
+  * Outras ferramentas
+    * Mixins - funcões para calcular propriedades com base em um parâmetro
+    * Operators - fazer contas
+
