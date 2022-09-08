@@ -1,4 +1,4 @@
-falta definicoes react, estilos: fontAwsame, bulma, sass, animações?
+falta definicoes react, estilos: bulma,
 # CheatSheet React, ReactRouter, Redux e testes
   
   * Com base no módulo de front-end da Trybe
@@ -16,6 +16,7 @@ falta definicoes react, estilos: fontAwsame, bulma, sass, animações?
     * [Componentes funcionais](#Componentes-funcionais)
       * [Hooks](#Hooks)
     * [Renderização condicional](#Renderização-condicional)
+    * [PropTypes](#proptypes)
   * [ReactRouter](#ReactRouter)
     * [Instalação](#Instalação-ReactRouter)
     * [No arquivo `index.js`](#No-arquivo-(index.js))
@@ -123,6 +124,10 @@ store.subscribe(() => {
 1. 
 
 #### Hooks
+
+1. 
+
+### PropTypes
 
 1. 
 
@@ -1287,12 +1292,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 1. [Documentação](https://sass-lang.com/guide)
 
 2. Organização
-  * criar pasta styles
-    * criar arquivo main.scss - aonde serão importados todos os arquivos
-    * criar arquivo _base.scss - estilos globais, css reset
-    * criar arquivo _colors.scss - definição de cores
-    * criar arquivo components.scss - estilo de componentes específicos
-    * criar arquivo layout.scss - posicionamento e forma dos componentes
+  * criar pasta `styles`
+    * criar arquivo `main.scss` - aonde serão importados todos os arquivos
+    * criar arquivo `_base.scss` - estilos globais, css reset
+    * criar arquivo `_colors.scss` - definição de cores
+    * criar arquivo `components.scss` - estilo de componentes específicos
+    * criar arquivo `layout.scss` - posicionamento e forma dos componentes
 
 3. Instalação
 
@@ -1351,6 +1356,6 @@ a {
 ```
 
   * Outras ferramentas
-    * Mixins - funcões para calcular propriedades com base em um parâmetro
+    * Mixins - funções para calcular propriedades com base em um parâmetro
     * Operators - fazer contas
 
