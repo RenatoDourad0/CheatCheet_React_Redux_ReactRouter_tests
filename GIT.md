@@ -5,7 +5,7 @@
 * pode ser feito pelo hash do commit, pelo nome da branch ou pelo nome do arquivo/pasta
   * quando feito pelo hash do commit cria uma branch com o conteúdo do repositorio no momento do commit
   * quando feito pelo nome do arquivo/pasta reverte o conteudo daquele arquivo/pasta para versão do ultimo commit
-  *quando feito pelo nome da branch cria uma nova branch ou muda para uma branch existente de mesmo nome
+  * quando feito pelo nome da branch cria uma nova branch ou muda para uma branch existente de mesmo nome
 
 ## diff
 
@@ -41,3 +41,10 @@
 * o arquivo permanece nas versoes anteriores a execucao do comando. Não é apagado do git, somente não é mais observado a partir daquele momento
 * parar de rastrear: ``` git update-index --skip-worktree {nome-do-arquivo} ```
 * votar a rastretar: ``` git update-index --no-skip-worktree {nome-do-arquivo} ```
+
+## revertendo mudanças
+
+* Para retornar um arquivo para sua versão original (remota) usar o `git checkout` com o nome do arquivo
+* Para retornar toda a pasta para versão original (remota) usar o `git checkout `
+* Para apagar um arquivo criado no ambiente de trabalho que ainda não tem uma versão remota usar o `git clean -f` (remove arquivos não rastreados)
+* Para reverter um arquivo staged para a área de trabalho seguir orientações do terminal e depois é possivel o git checkout
