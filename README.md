@@ -1,4 +1,4 @@
-falta definicoes react, estilos: bulma,
+falta definicoes react, moks estilos: bulma,
 # CheatSheet React, ReactRouter, Redux e testes
   
   * Com base no módulo de front-end da Trybe
