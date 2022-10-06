@@ -26,6 +26,7 @@
 - a flag '-t' cria uma nova seção do terminal no container
 - a flag '-i' faz com que esse novo terminal seja interativo
 - o comando `exit` sai do terminal
+- o comando ``docker container attach <nome-do-container>`` também entra no container
 
 ## monitoranto processos de um container
 - o comando ```docker top <nome-do-container>``` lista os processos que estão sendo rodados dentro do container
