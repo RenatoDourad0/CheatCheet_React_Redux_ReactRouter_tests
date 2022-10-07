@@ -23,11 +23,12 @@
     - a flag `-p` mapeia uma porta local com uma porta do container. Devem ser informadas no formato `<porta local>:<porta container>`
 - containers já iniciados podem ser executados com o comando ``docker container start <id_do_container>``
 
-## acessando o terminal do container
+## acessando o container
 - ``docker exec -it <nome-do-container> <comando-a-ser-executado>``
   - a flag `-t` cria uma nova seção do terminal no container
   - a flag `-i` faz com que esse novo terminal seja interativo
-  - o comando `exit` sai do terminal
+  - ``docker container exec -it <nome-do-container> bash`` entra no container sem executar nada
+- o comando `exit` sai do terminal
 - o comando ``docker container attach <nome-do-container>`` também entra no container
 
 ## monitoranto processos de um container
