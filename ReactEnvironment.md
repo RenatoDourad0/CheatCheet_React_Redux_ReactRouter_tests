@@ -1,4 +1,8 @@
-falta definicoes react, moks estilos: bulma,
+falta -
+definicoes react: hooks / context / ciclo de vida / patterns
+moks: mock na mão / mockServiceWorker
+css: grid, animações, pseudo-classes e pseudo-seletores, responsividade, mobile first, sass, modulos css, jquary, bootstrap, bulma, tailwind, styled-components,  material ui, Figma
+
 # CheatSheet React, ReactRouter, Redux e testes
   
   * Com base no módulo de front-end da Trybe
@@ -101,7 +105,7 @@ store.subscribe(() => {
 
 ### No diretório `/src`
 
-1. Criar diretórios ```components, pages, test e styles``` e organizar os arquivos existentes
+1. Criar diretórios ```components, pages, context, hooks, test e styles``` e organizar os arquivos existentes
 
 ### Importações comuns React
 
@@ -117,7 +121,10 @@ store.subscribe(() => {
 
 #### Ciclo de vida
 
-1. 
+1. `componentDidMount`
+2. `shouldComponentUpdate`
+3. `componentDidUpdate`
+4. `conponentWillUnmount`
 
 ### Componentes funcionais
 
@@ -125,13 +132,31 @@ store.subscribe(() => {
 
 #### Hooks
 
-1. 
+1. `useState`
+2. `useEffect`
+3. `useCallback`
+4. Hooks do ReactRouter
+  - `useHistory`
+  - `useLocation`
+5. Hooks do Redux
+  -  
+  -
+
+### Context
+
+1. Com classes
+  -
+
+2. Com funções
+  -
 
 ### PropTypes
 
 1. 
 
 ### Renderização condicional
+
+1.
 
 
 ## ReactRouter
