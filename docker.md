@@ -28,10 +28,10 @@
 - ``docker exec -it <nome-do-container> <comando-a-ser-executado>``
   - a flag `-t` cria uma nova seção do terminal no container
   - a flag `-i` faz com que esse novo terminal seja interativo
-  - ``docker container exec -it <nome-do-container> bash (ou sh)`` entra no container sem executar nada
+  - ``docker container exec -it <nome-do-container> bash (ou sh)`` entra em uma novo terminal do container sem executar nada
 - o comando `exit` sai do terminal e encerra o container
 - para sair do terminal sem encerrar o container `cmd p + cmd q`
-- o comando ``docker container attach <nome-do-container>`` também entra no container
+- o comando ``docker container attach <nome-do-container>`` também entra no container mas em seu terminal principal
 
 ## monitoranto processos de um container
 - o comando ```docker top <nome-do-container>``` lista os processos que estão sendo rodados dentro do container
@@ -109,5 +109,7 @@ volumes:          // declaração dos volumes virtuais
 networks:        // declaração das redes criadas
   rede-virtual-1:
 ```
-  - ``docker-compose up -d`` para subir os containers
-  - ``docker-compose down``para cancelar processos
+  - ``docker-compose up -d`` na pasta do arquivo docker-compose.yaml para subir os containeres
+    - ``docker-compose up --build -d`` para atualizar e inicializar os containeres  
+  - ``docker-compose down`` para cancelar processos
+  - ``docker-compose build`` para atualizar os containers
