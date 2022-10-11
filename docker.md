@@ -21,14 +21,16 @@
     - a flag `-i` faz com que esse novo terminal seja interativo
     - a flag `-P` mapeia uma porta local com uma porta do container, ambas aleatórias
     - a flag `-p` mapeia uma porta local com uma porta do container. Devem ser informadas no formato `<porta local>:<porta container>`
+    - a flag `-v`
 - containers já iniciados podem ser executados com o comando ``docker container start <id_do_container>``
 
 ## acessando o container
 - ``docker exec -it <nome-do-container> <comando-a-ser-executado>``
   - a flag `-t` cria uma nova seção do terminal no container
   - a flag `-i` faz com que esse novo terminal seja interativo
-  - ``docker container exec -it <nome-do-container> bash`` entra no container sem executar nada
-- o comando `exit` sai do terminal
+  - ``docker container exec -it <nome-do-container> bash (ou sh)`` entra no container sem executar nada
+- o comando `exit` sai do terminal e encerra o container
+- para sair do terminal sem encerrar o container `cmd p + cmd q`
 - o comando ``docker container attach <nome-do-container>`` também entra no container
 
 ## monitoranto processos de um container
@@ -76,3 +78,36 @@
     - Indica qual é o comando (e seus argumentos) ou somente os argumentos que PODEm ser executados ao iniciar esta imagem Docker como um container. Somente uma sujestão
   - `ENV <chave>=<valor>`
     - usado para setar variaveis de ambiente
+
+## arquivo docker-compose.yaml
+
+```
+version: "3"       // versão dos comandos a serem utilizados no arquivo
+services:
+  <nome-do-serviço>:
+    build: <nome-da-imagem-ou-caminho-Dockerfile>       // imagem a ser utilizada (build no caso de se contruir a imagem na hora a partir do Dockerfile e image se usar uma imagem pronta)
+    restart: <metodo-de-reinicialização>       // método de reinicialização em caso de queda do container (pode ter os valores - no, on-failure, always, unless-stopped)
+    ports:        // mapeamento de portas em forma de lista 
+      - <porta-local>:<porta-container>
+    depends_on:         // define a ordem que os containers devem ser montados
+      - <nome-do-serviço>
+    volumes:          // mapeamento de volumes em forma de lista 
+      - <caminho-local-ou-nome-volume-virtual>:<caminho-container>
+    networks:          // mapeamento de redes em forma de lista
+      - <nome-da-rede>
+  database:
+    image: betrybe/docker-compose-example-database:v1
+    restart: always
+    volumes:
+      - dados-do-banco:/data/db
+    networks:
+      - rede-virtual-1
+    environment:            // definição de variáveis de ambiente em formato de lista
+      - DB_HOST=database
+volumes:          // declaração dos volumes virtuais
+  dados-do-banco:
+networks:        // declaração das redes criadas
+  rede-virtual-1:
+```
+  - ``docker-compose up -d`` para subir os containers
+  - ``docker-compose down``para cancelar processos
