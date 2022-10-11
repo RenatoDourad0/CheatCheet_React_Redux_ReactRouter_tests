@@ -111,5 +111,6 @@ networks:        // declaração das redes criadas
 ```
   - ``docker-compose up -d`` na pasta do arquivo docker-compose.yaml para subir os containeres
     - ``docker-compose up --build -d`` para atualizar e inicializar os containeres  
-  - ``docker-compose down`` para cancelar processos
+  - ``docker-compose down`` para cancelar processos e desmontar os containeres
+    - a flag `--volumes` tambem remove os volumes  
   - ``docker-compose build`` para atualizar os containers
