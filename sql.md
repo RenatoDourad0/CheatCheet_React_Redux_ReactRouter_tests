@@ -1,10 +1,15 @@
 # SQL
+  - MySQL é um SGBD - sistema de gerenciamento de banco de dados - ou seja, um serviço executado em segundo plano que auxilia no gerenciamento de db's
 
-## comandos do homebrew
-  - o servidor SQL é um servço que precisa ser inicializado
+## comandos do homebrew (uso local)
+  - o servidor SQL precisa ser inicializado
     -  para inicializar o servidor `brew services run mysql`
+    -  para parar o servidor `brew services stop mysql`
     -  para ativar a inicialização automatica junto com o computador `brew services start mysql`
-    -  para desativar a inicialização automatica junto com o computador `brew services stop mysql`
+    -  também disponivel nas configurações do mac
+
+## sql conteinerizado
+  -
 
 ## comandos de manipulação
   - `USE <nome-banco>;` para acessar uma db
