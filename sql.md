@@ -8,6 +8,9 @@
     -  para ativar a inicialização automatica junto com o computador `brew services start mysql`
     -  também disponivel nas configurações do mac
 
+## conectando ao servidor
+  - `mysql -u root -p` aonde root é o usuário
+
 ## sql conteinerizado
   -
 
