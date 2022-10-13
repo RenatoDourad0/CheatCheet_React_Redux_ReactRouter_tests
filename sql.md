@@ -9,7 +9,11 @@
     -  também disponivel nas configurações do mac
 
 ## conectando ao servidor
-  - `mysql -u root -p` aonde root é o usuário
+  - `mysql -u <nome-usuario> -p` aonde a flag `-u` permite definir o usuário (normalmete root) e a flag `-p` permite entrar com a senha do usuário
+
+## portas e variaveis de ambiente
+  - a porta padrão utilizada pelo mysql é a `3306`
+  - `MYSQL_ROOT_PASSWORD=<senha>`
 
 ## sql conteinerizado
   -
