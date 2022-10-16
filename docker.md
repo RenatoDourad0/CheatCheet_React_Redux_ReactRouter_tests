@@ -80,7 +80,6 @@
     - usado para setar variaveis de ambiente
 
 ## arquivo docker-compose.yaml
-
 ```
 version: "3"       // versão dos comandos a serem utilizados no arquivo
 services:
@@ -114,3 +113,87 @@ networks:        // declaração das redes criadas
   - ``docker-compose down`` para cancelar processos e desmontar os containeres
     - a flag `--volumes` tambem remove os volumes  
   - ``docker-compose build`` para atualizar os containers
+
+## docker + react
+  - usando uma imagem node para build e um servidor nginx para ambiente de produção
+      - o caminho do entrypoint deve ser `/` e não deve ter um homepage definido no package.json
+ ```
+ // .dockerignore
+ 
+node_modules
+build
+ ```
+```
+ // nginx.conf
+ 
+server {
+  listen 80;
+
+  location / {
+    root /usr/share/nginx/html/;
+    include /etc/nginx/mime.types;
+    try_files $uri $uri/ /index.html;
+  }
+  error_page 500 502 503 504 /50x.html;
+  location = /50x.html {
+    root /usr/share/nginx/html/;
+  }
+}
+```
+```
+ // Dockerfile
+ 
+FROM node:16-alpine as builder
+# Set the working directory to /app inside the container
+WORKDIR /app
+# Copy app files
+COPY package.json .
+COPY package-lock.json .
+# Install dependencies
+RUN npm install 
+# Build the app
+COPY . .
+RUN npm run build
+
+# Bundle static assets with nginx
+FROM nginx:1.21.0-alpine as production
+ENV NODE_ENV production
+# Copy built assets from `builder` image
+COPY --from=builder /app/build /usr/share/nginx/html
+# Add your nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Expose port
+EXPOSE 80
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
+```
+  - usando uma imagem node para ambiente de desenvolvimento
+```
+// .dockerignore
+
+node_modules
+```
+```
+// Dockerfile
+
+FROM node:16-alpine as builder
+# Set the working directory to /app inside the container
+WORKDIR /app
+# Copy app files
+COPY package.json .
+COPY package-lock.json .
+# Install dependencies
+RUN npm install 
+# Build the app
+COPY . .
+EXPOSE 80
+RUN npm start
+```
+  - para iniciar o container `docker run --name <nome-container> -d -p 3000:80 <nome-imagem>`
+ 
+## docker + mysql
+  - [imagem mysql](https://hub.docker.com/_/mysql)
+  - criar um container executando o servidor mysql
+    - `docker run --name <nome-container> -e MYSQL_ROOT_PASSWORD=<senha-sql> -d mysql:<tag>` 
+  - criar um segundo container que se conecta ao primeiro
+    - `docker run -it --network <nome-rede> --rm mysql mysql -h<nome-host> -u<nome-usuario> -p`
