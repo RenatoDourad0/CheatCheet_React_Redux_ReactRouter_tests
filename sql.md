@@ -1,5 +1,6 @@
 # SQL
   - MySQL é um SGBD - sistema de gerenciamento de banco de dados - ou seja, um serviço executado em segundo plano que auxilia no gerenciamento de db's
+    - `cmd + b` para formatação automática 
 
 ## comandos do homebrew (uso local)
   - o servidor SQL precisa ser inicializado
@@ -15,7 +16,7 @@
   - a porta padrão utilizada pelo mysql é a `3306`
   - `MYSQL_ROOT_PASSWORD=<senha>`
 
-## sql conteinerizado
+## Mysql conteinerizado
   -
 
 
@@ -31,20 +32,41 @@
     - `SELECT * FROM <nome-banco>.<nome-tabela>;` outra forma de acessar a db já especificando a tabela (mais direta) 
   - `DESCRIBE <nome-tabela>;` para mostrar uma tabela
   - `SELECT <informação> AS <nome-coluna> FROM <DB.tabela>` Usado para buscar dados em um banco de dados;
-  - `INSERT` Insere dados em uma tabela;
-  - `UPDATE` Altera dados dentro de uma tabela;
-  - `DELETE` Exclui dados de uma tabela.
   - `CONCAT` une colunas da tabela enquerida em uma so coluna
   - `DISTINCT` não seleciona dados repetidos
-  - `COUNT()` para totalizar valores não nulos de colunas da tabela
+  - `COUNT ()` para totalizar valores não nulos de colunas da tabela
   - `LIMIT` limitar quantidade de resultados retornados
   - `OFFSET` junto com o LIMIT permite pular linhas iniciais da tabela
   - `ORDER BY <nome-coluna> ASC ou DESC, <nome-coluna-2> ASC ou DESC` para ordenar o resultado da query de forma crescente ou decrescente
   - `WHERE` permite fazer uma seleção
-    - usado com operadores aritimeticos( =, >, <, !=) 
-    - com NOT para relação de diferente
-    - com LIKE para relação de proximidade (por exemplo uma string parcial '%...')
+  - `LIKE` comparação por aproximação
+    - coringa `%` representa um conjunto de caracteres
+    - coringa `_` representa um caractere
+  - `IN ()` permite definir um conjunto de valores a serem comparados no filtro
+  - `BETWEEN <valor1> AND <valor2>` permite definir uma área de variação de valores a serem comparados no filtro
   - `ROUND` E `FLOOR` PARA RREDONDAR `ROUND(<dado>, <numero-de-casas-decimais>) ou FLOOR(<dado>)`
+  - `INSERT` Insere dados em uma tabela;
+  - `UPDATE` Altera dados dentro de uma tabela;
+  - `DELETE` Exclui dados de uma tabela.
+
+### operadores
+  - `=` IGUAL
+  - `>` MAIOR QUE
+  - `<` MENOR QUE
+  - `>=` MAIOR QUE OU IGUAL
+  - `<=` MENOR QUE OU IGUAL
+  - `<>` DIFERENTE DE
+  - `AND` OPERADOR LÓGICO E
+  - `OR` OPERADOR LÓGICO OU
+  - `NOT` NEGAÇÃO
+  - `IS` COMPARA COM VALORES BOOLEANOS (TRUE, FALSE, NULL)
+
+### tipos de dados 
+  - number
+  - string
+  - bool `0 / 1 - FALSE / TRUE`
+  - date `'AAAA-MM-DD HH:MM:SS'`
+    - funções de data - ``` DATE(), YEAR(), MONTH(), DAY(), HOUR(), MINUTE(), SECOND() ```
 
 ## comandos de controle
   - `GRANT` Concede acesso a um usuário;
