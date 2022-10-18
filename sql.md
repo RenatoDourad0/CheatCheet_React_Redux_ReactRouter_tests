@@ -45,9 +45,6 @@
   - `IN ()` permite definir um conjunto de valores a serem comparados no filtro
   - `BETWEEN <valor1> AND <valor2>` permite definir uma área de variação de valores a serem comparados no filtro
   - `ROUND` E `FLOOR` PARA RREDONDAR `ROUND(<dado>, <numero-de-casas-decimais>) ou FLOOR(<dado>)`
-  - `INSERT` Insere dados em uma tabela;
-  - `UPDATE` Altera dados dentro de uma tabela;
-  - `DELETE` Exclui dados de uma tabela.
 
 ### operadores
   - `=` IGUAL
@@ -62,11 +59,83 @@
   - `IS` COMPARA COM VALORES BOOLEANOS (TRUE, FALSE, NULL)
 
 ### tipos de dados 
-  - number
+  - number (integer e float)
   - string
   - bool `0 / 1 - FALSE / TRUE`
-  - date `'AAAA-MM-DD HH:MM:SS'`
-    - funções de data - ``` DATE(), YEAR(), MONTH(), DAY(), HOUR(), MINUTE(), SECOND() ```
+  - date `'AAAA-MM-DD HH:MM:SS'` (date, dateTime, timeStamp)
+    - [referência](https://www.w3resource.com/mysql/date-and-time-functions/date-and-time-functions.php) 
+    - funções de transformação de data - ``` DATE(), YEAR(), MONTH(), DAY(), HOUR(), MINUTE(), SECOND() ```
+    - funções de data - ```now(), curtime(), curday()```
+
+### cast
+  - conversão de tipos
+
+### INSERT
+  - adicionar dados a tabela
+  - observar colunas com valores setadors automaticamente, essas não devem ser citadas no INSERT
+  - INSERT IGNORE para adicionar dados ignorando possíveis erros, como informações duplicadas. A parte que funciona da query é executada independente de outra parte falhar
+```sql
+-- inserindo valores brutos
+INSERT INTO nome_da_tabela (coluna1, coluna2) VALUES
+('valor_1','valor_2'),
+('valor_3','valor_4'),
+('valor_5','valor_6');
+
+-- inserindo valores dinâmicos (de outras tabelas)
+INSERT INTO tabelaA (coluna1, coluna2)
+    SELECT coluna1, coluna2
+    FROM tabelaB
+    WHERE nome_da_coluna <> 'algumValor'
+    ORDER BY coluna_de_ordenacao;
+```
+
+### UPDATE
+  - atualizar dados
+  - para desabilitar o safe updates mode (permite updates somente se especificado o id da linha) executar a query `SET SQL_SAFE_UPDATES = 0;`
+  - para habilitar o safe updates `SET sql_safe_updates=1, sql_select_limit=1000, max_join_size=1000000;`
+```sql
+-- update de uma coluna em uma linha
+UPDATE nome_da_tabela
+SET propriedade_a_ser_alterada = 'novo valor para coluna'
+WHERE alguma_condicao -- importantíssimo aplicar o WHERE para não alterar a tabela inteira!
+[ORDER BY expressao [ ASC | DESC ]]
+[LIMIT quantidade_resultados];
+
+-- update de varias colunas em uma linha
+UPDATE nome_da_tabela
+SET propriedade_a_ser_alterada = 'novo valor para coluna', propriedade_a_ser_alterada_2 = 'novo valor para coluna'
+WHERE alguma_condicao;
+
+-- update de uma coluna em varias linhas
+UPDATE nome_da_tabela
+SET propriedade_a_ser_alterada = 'novo valor para coluna'
+WHERE propriedade IN (conjunto);
+-- ou
+UPDATE nome_da_tabela
+SET propriedade_a_ser_alterada = (
+CASE propriedade WHEN valor THEN 'novo valor' -- se propriedade = valor, alterar propriedade_a_ser_alterada para 'novo valor'
+              WHEN valor2 THEN 'outro valor'
+              WHEN valor3 THEN 'outro valor' 
+	      ELSE propriedade_a_ser_alterada -- em todos os outros casos, mantém-se o valor existente
+END);
+-- ou
+UPDATE nome_da_tabela
+SET propriedade_a_ser_alterada = (
+CASE
+  WHEN condição THEN 'novo valor' -- se condição (propriedade = valor), alterar propriedade_a_ser_alterada para 'novo valor'
+  WHEN condição2 THEN 'outro valor'
+  ELSE propriedade_a_ser_alterada -- em todos os outros casos, mantém-se o valor existente
+END);
+```
+
+### DELETE
+  - remover dados
+  - caso a linha a ser excluida possua referencias externas que utilizam de restrições ON DELETE (NO ACTION, RESTRICT, SET NULL, CASCADE) o comando pode ser bloqueado. Para resolver deve-se primeiro excluir as informações da tabela extrangeira
+```sql
+DELETE FROM banco_de_dados.tabela
+WHERE coluna = 'valor';
+-- O WHERE é opcional. Porém, sem ele, todas as linhas da tabela seriam excluídas.
+```
 
 ## comandos de controle
   - `GRANT` Concede acesso a um usuário;
