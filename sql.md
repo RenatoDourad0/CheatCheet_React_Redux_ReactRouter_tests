@@ -17,8 +17,9 @@
   - `MYSQL_ROOT_PASSWORD=<senha>`
 
 ## Mysql conteinerizado
-  -
-
+  - ` docker run --name <nome> -v /Users/renatocampos/mysql/<nome-pasta>:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=<senha> -d mysql:<tag>`
+  - `docker exec -it <id_container> bash`
+  - `mysql -u root -p`
 
 ## comandos de definição
   - `CREATE` Para criar bancos de dados, tabelas, índices, views, procedures, functions e triggers;
