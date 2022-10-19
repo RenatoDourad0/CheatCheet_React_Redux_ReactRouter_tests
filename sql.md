@@ -11,6 +11,7 @@
 
 ## conectando ao servidor
   - `mysql -u <nome-usuario> -p` aonde a flag `-u` permite definir o usuário (normalmete root) e a flag `-p` permite entrar com a senha do usuário
+  - senha servidor mysql local '1234'
 
 ## portas e variaveis de ambiente
   - a porta padrão utilizada pelo mysql é a `3306`
