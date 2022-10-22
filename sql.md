@@ -1,6 +1,7 @@
 # SQL
   - MySQL é um SGBD - sistema de gerenciamento de banco de dados - ou seja, um serviço executado em segundo plano que auxilia no gerenciamento de db's
-    - `cmd + b` para formatação automática 
+    - `cmd + b` para formatação automática
+    - `--` para comentário
 
 ## comandos do homebrew (uso local)
   - o servidor SQL precisa ser inicializado
@@ -46,7 +47,12 @@
     - coringa `_` representa um caractere
   - `IN ()` permite definir um conjunto de valores a serem comparados no filtro
   - `BETWEEN <valor1> AND <valor2>` permite definir uma área de variação de valores a serem comparados no filtro
-  - `ROUND` E `FLOOR` PARA RREDONDAR `ROUND(<dado>, <numero-de-casas-decimais>) ou FLOOR(<dado>)`
+  - `ROUND`, `FLOOR`, `CEIL` PARA RREDONDAR `ROUND(<dado>, <numero-de-casas-decimais>) ou FLOOR(<dado>)`
+  - `DIV` e `MOD` para divisão e resto `<dado> DIV/MOD <dado>`
+  - `POW` e `SQRT` para exponenciação e raiz quadrada `POW/SQRT(<dado>)`
+  - `RAND()` para gerar numeros aleatoriaos entre 0 e 1;
+  - funções de agregação
+  	- ```AVG(<coluna>) MIN(<coluna>) MAX(<coluna>) COUNT(<coluna>) SUM(<coluna>)```
 
 ### operadores
   - `=` IGUAL
@@ -67,7 +73,8 @@
   - date `'AAAA-MM-DD HH:MM:SS'` (date, dateTime, timeStamp)
     - [referência](https://www.w3resource.com/mysql/date-and-time-functions/date-and-time-functions.php) 
     - funções de transformação de data - ``` DATE(), YEAR(), MONTH(), DAY(), HOUR(), MINUTE(), SECOND() ```
-    - funções de data - ```now(), curtime(), curday()```
+    - funções de data - ```now(), curtime(), curday(), CURRENT_DATE()```
+    - calculos com data - ```DATEDIFF(<data-mais-atual>, <data-mais-antiga>), TIMEDIFF(<hora-mais-atual>, <hora-mais-antiga>)```
 
 ### cast
   - conversão de tipos
@@ -139,6 +146,22 @@ WHERE coluna = 'valor';
 -- O WHERE é opcional. Porém, sem ele, todas as linhas da tabela seriam excluídas.
 ```
 
+## codicionais
+```sql
+SELECT IF(condicao, valor_se_verdadeiro, valor_se_falso);
+
+SELECT
+    nome,
+    nivel_acesso,
+    CASE
+        WHEN nivel_acesso = 1 THEN 'Nível de acesso 1'
+        WHEN nivel_acesso = 2 THEN 'Nível de acesso 2'
+        WHEN nivel_acesso = 3 THEN 'Nível de acesso 3'
+        ELSE 'Usuário sem acesso'
+    END AS nivel_acesso
+FROM permissoes_usuario;
+```
+
 ## comandos de controle
   - `GRANT` Concede acesso a um usuário;
   - `REVOKE` Remove acessos concedidos através do comando GRANT.
@@ -150,5 +173,7 @@ WHERE coluna = 'valor';
   - `TRANSACTION` Comandos que definem onde, como e em que escopo suas transações são executadas.
 
 ## cheat sheet
-![IMG_6192](https://user-images.githubusercontent.com/99191410/196166224-f812742b-3297-4c6b-8771-c7cde7b6fc4d.jpeg)  
-![IMG_6193](https://user-images.githubusercontent.com/99191410/196166430-a1896024-1cae-4c63-b175-c6d34ea3d10d.jpeg)
+- [cheat sheet 1](https://kanakinfosystems.com/blog/sql-cheat-sheet)
+- [W3](https://www.w3schools.com/sql/sql_create_db.asp)
+- ![IMG_6192](https://user-images.githubusercontent.com/99191410/196166224-f812742b-3297-4c6b-8771-c7cde7b6fc4d.jpeg)  
+- ![IMG_6193](https://user-images.githubusercontent.com/99191410/196166430-a1896024-1cae-4c63-b175-c6d34ea3d10d.jpeg)
