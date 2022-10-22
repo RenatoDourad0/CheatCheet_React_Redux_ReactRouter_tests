@@ -2,6 +2,8 @@
   - MySQL é um SGBD - sistema de gerenciamento de banco de dados - ou seja, um serviço executado em segundo plano que auxilia no gerenciamento de db's
     - `cmd + b` para formatação automática
     - `--` para comentário
+    - para desabilitar o safe updates mode (permite updates somente se especificado o id da linha) executar a query `SET SQL_SAFE_UPDATES = 0;`
+    - para habilitar o safe updates `SET sql_safe_updates=1, sql_select_limit=1000, max_join_size=1000000;`
 
 ## comandos do homebrew (uso local)
   - o servidor SQL precisa ser inicializado
@@ -35,25 +37,23 @@
     - `SELECT * FROM <nome-banco>.<nome-tabela>;` outra forma de acessar a db já especificando a tabela (mais direta) 
   - `DESCRIBE <nome-tabela>;` para mostrar uma tabela
   - `SELECT <informação> AS <nome-coluna> FROM <DB.tabela>` Usado para buscar dados em um banco de dados;
+  - `WHERE` permite fazer uma seleção em toda tabela
+  - `ORDER BY <nome-coluna> ASC ou DESC, <nome-coluna-2> ASC ou DESC` para ordenar o resultado da query de forma crescente ou decrescente
+  - `GROUP BY` permite aglutinar os resultados em grupos com base em uma ou mais colunas
+  - `HAVING` permite fazer uma seleção com as propriedades de um grupo
   - `CONCAT` une colunas da tabela enquerida em uma so coluna
   - `DISTINCT` não seleciona dados repetidos
   - `COUNT ()` para totalizar valores não nulos de colunas da tabela
   - `LIMIT` limitar quantidade de resultados retornados
   - `OFFSET` junto com o LIMIT permite pular linhas iniciais da tabela
-  - `ORDER BY <nome-coluna> ASC ou DESC, <nome-coluna-2> ASC ou DESC` para ordenar o resultado da query de forma crescente ou decrescente
-  - `WHERE` permite fazer uma seleção
   - `LIKE` comparação por aproximação
     - coringa `%` representa um conjunto de caracteres
     - coringa `_` representa um caractere
   - `IN ()` permite definir um conjunto de valores a serem comparados no filtro
   - `BETWEEN <valor1> AND <valor2>` permite definir uma área de variação de valores a serem comparados no filtro
-  - `ROUND`, `FLOOR`, `CEIL` PARA RREDONDAR `ROUND(<dado>, <numero-de-casas-decimais>) ou FLOOR(<dado>)`
-  - `DIV` e `MOD` para divisão e resto `<dado> DIV/MOD <dado>`
-  - `POW` e `SQRT` para exponenciação e raiz quadrada `POW/SQRT(<dado>)`
-  - `RAND()` para gerar numeros aleatoriaos entre 0 e 1;
   - funções de agregação
-  	- ```AVG(<coluna>) MIN(<coluna>) MAX(<coluna>) COUNT(<coluna>) SUM(<coluna>)```
-
+	- ```AVG(<coluna>) MIN(<coluna>) MAX(<coluna>) COUNT(<coluna>) SUM(<coluna>)```
+  	
 ### operadores
   - `=` IGUAL
   - `>` MAIOR QUE
@@ -68,13 +68,34 @@
 
 ### tipos de dados 
   - number (integer e float)
+  	- `DIV` e `MOD` para divisão e resto `<dado> DIV ou MOD <dado>`
+  	- `POW` e `SQRT` para exponenciação e raiz quadrada `POW ou SQRT(<dado>)`
+ 	- `RAND()` para gerar numeros aleatoriaos entre 0 e 1;
+ 	- `ROUND`, `FLOOR`, `CEIL` para arredondar `ROUND(<dado>, <numero-de-casas-decimais>) ou FLOOR(<dado>)`
   - string
+  	- indice se inicia em 1
+  	- funções de string
+```sql
+UCASE(<coluna>) 
+LCASE(<coluna>) 
+REPLACE(<coluna>, <pedaço-a-alterar>, <novo-valor>)
+LEFT(<coluna>, <numero-caracteres-a-retornar>) 
+RIGHT(<coluna>, <numero-caracteres-a-retornar>)
+CHAR_LENGTH(<coluna>) 
+LENGTH(<coluna>) 
+SUBSTRING(<coluna>, <indice-inicial>, <numero-de-caracteres>)
+``` 
+
   - bool `0 / 1 - FALSE / TRUE`
-  - date `'AAAA-MM-DD HH:MM:SS'` (date, dateTime, timeStamp)
-    - [referência](https://www.w3resource.com/mysql/date-and-time-functions/date-and-time-functions.php) 
-    - funções de transformação de data - ``` DATE(), YEAR(), MONTH(), DAY(), HOUR(), MINUTE(), SECOND() ```
-    - funções de data - ```now(), curtime(), curday(), CURRENT_DATE()```
-    - calculos com data - ```DATEDIFF(<data-mais-atual>, <data-mais-antiga>), TIMEDIFF(<hora-mais-atual>, <hora-mais-antiga>)```
+  - date 
+    - [referência](https://www.w3resource.com/mysql/date-and-time-functions/date-and-time-functions.php)  
+    - `'AAAA-MM-DD HH:MM:SS'` (date, dateTime, timeStamp)
+    - funções de transformação de data 
+    	- ``` DATE(), YEAR(), MONTH(), DAY(), HOUR(), MINUTE(), SECOND() ```
+    - funções de data 
+    	- ```now(), curtime(), curday(), CURRENT_DATE()```
+    - calculos com data 
+    	- ```DATEDIFF(<data-mais-atual>, <data-mais-antiga>), TIMEDIFF(<hora-mais-atual>, <hora-mais-antiga>)```
 
 ### cast
   - conversão de tipos
@@ -100,8 +121,6 @@ INSERT INTO tabelaA (coluna1, coluna2)
 
 ### UPDATE
   - atualizar dados
-  - para desabilitar o safe updates mode (permite updates somente se especificado o id da linha) executar a query `SET SQL_SAFE_UPDATES = 0;`
-  - para habilitar o safe updates `SET sql_safe_updates=1, sql_select_limit=1000, max_join_size=1000000;`
 ```sql
 -- update de uma coluna em uma linha
 UPDATE nome_da_tabela
