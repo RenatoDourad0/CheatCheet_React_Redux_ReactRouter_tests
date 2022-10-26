@@ -181,6 +181,19 @@ SELECT
 FROM permissoes_usuario;
 ```
 
+## JOINS
+
+	- inner join retorna somente os dados que satisfazem a condição, já left e right join retornam todos os dados da tabela focalizada, acrescidos dos dados da tabela secundária que satisfazem a codição, caso exitam
+	- a tabela focalizada no right join é a que esta a direita da palavra join. ja no left join a tabela focalizada é a que esta aesquerda da palavra join
+	- self join é usado em situações em que as informações estejam armazenadas em apenas uma tabela
+```sql
+SELECT t1.coluna, t2.coluna
+FROM tabela1 AS t1
+INNER/LEFT/RIGHT JOIN tabela2 AS t2
+ON t1.coluna_em_comum = t2.coluna_em_comum;
+```
+
+
 ## comandos de controle
   - `GRANT` Concede acesso a um usuário;
   - `REVOKE` Remove acessos concedidos através do comando GRANT.
