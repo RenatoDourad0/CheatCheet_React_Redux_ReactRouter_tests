@@ -67,14 +67,23 @@
   - `IS` COMPARA COM VALORES BOOLEANOS (TRUE, FALSE, NULL)
 
 ### tipos de dados 
-  - number (integer e float)
-  	- `DIV` e `MOD` para divisão e resto `<dado> DIV ou MOD <dado>`
-  	- `POW` e `SQRT` para exponenciação e raiz quadrada `POW ou SQRT(<dado>)`
- 	- `RAND()` para gerar numeros aleatoriaos entre 0 e 1;
- 	- `ROUND`, `FLOOR`, `CEIL` para arredondar `ROUND(<dado>, <numero-de-casas-decimais>) ou FLOOR(<dado>)`
-  - string
-  	- indice se inicia em 1
-  	- funções de string
+- number
+	- variações
+		- `CHAR(<numero-de-caracteres>)` - utiliza todo o espaço reservado sempre
+		- `VARCHAR(<numero-de-caracteres>)` - utiliza somente o espaço necessário até o limite especificado
+		- `TINYINT` - valores inteiros de 0 a 255 (unsigned) ou -128 a 127 (signed)
+			- `SMALLINT, MEDIUMINT, INT, BIGINT` são outras formas de numeros inteiros que permitem tamanhos maiores
+		- `DECIMAL(<numero-de-caracteres>,<numero-de-casas-decimais>)`
+			- `FLOAT / REAL` precisão de uma casa decimal
+			- `DOUBLE` precisão de duas casas decimais 
+	- funções com numeros 
+		- `DIV` e `MOD` para divisão e resto `<dado> DIV ou MOD <dado>`
+		- `POW` e `SQRT` para exponenciação e raiz quadrada `POW(<dado>) SQRT(<dado>)`
+		- `RAND()` para gerar numeros aleatoriaos entre 0 e 1;
+		- `ROUND`, `FLOOR`, `CEIL` para arredondar `ROUND(<dado>, <numero-de-casas-decimais>) ou FLOOR(<dado>)`
+- string / caracteres
+	- indice se inicia em 1
+	- funções de string
 ```sql
 UCASE(<coluna>) 
 LCASE(<coluna>) 
@@ -85,11 +94,13 @@ CHAR_LENGTH(<coluna>)
 LENGTH(<coluna>) 
 SUBSTRING(<coluna>, <indice-inicial>, <numero-de-caracteres>)
 ``` 
-
-  - bool `0 / 1 - FALSE / TRUE`
-  - date 
-    - [referência](https://www.w3resource.com/mysql/date-and-time-functions/date-and-time-functions.php)  
-    - `'AAAA-MM-DD HH:MM:SS'` (date, dateTime, timeStamp)
+  - bool 
+  	- `0 / 1 - FALSE / TRUE`
+  - date / temporais
+    - [referência](https://www.w3resource.com/mysql/date-and-time-functions/date-and-time-functions.php) 
+    - `'AAAA-MM-DD HH:MM:SS'`
+    - variações
+    	-  date, time, year, mounth, day, dateTime, timeStamp
     - funções de transformação de data 
     	- ``` DATE(), YEAR(), MONTH(), DAY(), HOUR(), MINUTE(), SECOND() ```
     - funções de data 
@@ -165,7 +176,7 @@ WHERE coluna = 'valor';
 -- O WHERE é opcional. Porém, sem ele, todas as linhas da tabela seriam excluídas.
 ```
 
-## codicionais
+### codicionais
 ```sql
 SELECT IF(condicao, valor_se_verdadeiro, valor_se_falso);
 
@@ -181,18 +192,17 @@ SELECT
 FROM permissoes_usuario;
 ```
 
-## JOINS
-
-	- inner join retorna somente os dados que satisfazem a condição, já left e right join retornam todos os dados da tabela focalizada, acrescidos dos dados da tabela secundária que satisfazem a codição, caso exitam
-	- a tabela focalizada no right join é a que esta a direita da palavra join. ja no left join a tabela focalizada é a que esta aesquerda da palavra join
-	- self join é usado em situações em que as informações estejam armazenadas em apenas uma tabela
+### joins
+- inner join retorna somente os dados que satisfazem a condição, já left e right join retornam todos os dados da tabela focalizada, acrescidos dos dados da tabela secundária que satisfazem a codição, caso exitam
+- a tabela focalizada no right join é a que esta a direita da palavra join. ja no left join a tabela focalizada é a que esta aesquerda da palavra join
+- self join é usado em situações em que as informações estejam armazenadas em apenas uma tabela
+	
 ```sql
 SELECT t1.coluna, t2.coluna
 FROM tabela1 AS t1
 INNER/LEFT/RIGHT JOIN tabela2 AS t2
 ON t1.coluna_em_comum = t2.coluna_em_comum;
 ```
-
 
 ## comandos de controle
   - `GRANT` Concede acesso a um usuário;
@@ -203,6 +213,43 @@ ON t1.coluna_em_comum = t2.coluna_em_comum;
   - `ROLLBACK` Desfaz todo o impacto realizado por um comando;
   - `SAVEPOINT` Define pontos para os quais uma transação pode voltar. É uma maneira de voltar para pontos específicos de sua query;
   - `TRANSACTION` Comandos que definem onde, como e em que escopo suas transações são executadas.
+
+## criando tableas
+
+### normalização
+- [referencia das 3 formas normais](https://learn.microsoft.com/pt-br/office/troubleshoot/access/database-normalization-description#normalizing-an-example-table)
+
+### template
+```sql
+-- Há muitas formas de grafia existentes, mas para manter uma padronização e seguirmos a boa prática adotaremos a notação em "snake_case"
+-- para construirmos nossos bancos de dados e tabelas.
+
+DROP SCHEMA IF EXISTS trybe_flix;
+CREATE SCHEMA trybe_flix;
+USE trybe_flix;
+
+-- Primeiro criamos a tabela actor
+CREATE TABLE actor(
+    actor_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+-- E a tabela film
+CREATE TABLE film(
+    film_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+-- E por fim, a tabela film_actor com a relação N:N
+
+CREATE TABLE film_actor(
+  actor_id INTEGER,
+  film_id INTEGER,
+  CONSTRAINT PRIMARY KEY(actor_id, film_id),
+    FOREIGN KEY (actor_id) REFERENCES Actor (actor_id),
+    FOREIGN KEY (film_id) REFERENCES Film (film_id)
+);
+```
 
 ## cheat sheet
 - [cheat sheet 1](https://kanakinfosystems.com/blog/sql-cheat-sheet)
