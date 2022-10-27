@@ -218,6 +218,15 @@ ON t1.coluna_em_comum = t2.coluna_em_comum;
 
 ### normalização
 - [referencia das 3 formas normais](https://learn.microsoft.com/pt-br/office/troubleshoot/access/database-normalization-description#normalizing-an-example-table)
+- 1 regra normal
+	- Colunas devem possuir apenas um valor;
+	- Valores em uma coluna devem ser do mesmo tipo de dados;
+	- Cada coluna deve possuir um nome único;
+	- A ordem dos dados registrados em uma tabela não deve afetar a integridade dos dados.
+- 2 regra normal
+	- A tabela não deve possuir dependências parciais (Uma dependência parcial pode ser considerada como qualquer coluna que não depende exclusivamente da chave primária da tabela para existir)
+- 3 regra normal
+	- A tabela não deve conter atributos (colunas) que não sejam dependentes exclusivamente da PK (chave primária).
 
 ### template
 ```sql
