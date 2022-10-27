@@ -69,8 +69,6 @@
 ### tipos de dados 
 - number
 	- variações
-		- `CHAR(<numero-de-caracteres>)` - utiliza todo o espaço reservado sempre
-		- `VARCHAR(<numero-de-caracteres>)` - utiliza somente o espaço necessário até o limite especificado
 		- `TINYINT` - valores inteiros de 0 a 255 (unsigned) ou -128 a 127 (signed)
 			- `SMALLINT, MEDIUMINT, INT, BIGINT` são outras formas de numeros inteiros que permitem tamanhos maiores
 		- `DECIMAL(<numero-de-caracteres>,<numero-de-casas-decimais>)`
@@ -82,6 +80,9 @@
 		- `RAND()` para gerar numeros aleatoriaos entre 0 e 1;
 		- `ROUND`, `FLOOR`, `CEIL` para arredondar `ROUND(<dado>, <numero-de-casas-decimais>) ou FLOOR(<dado>)`
 - string / caracteres
+ 	- variações
+		- `CHAR(<numero-de-caracteres>)` - utiliza todo o espaço reservado sempre
+		- `VARCHAR(<numero-de-caracteres>)` - utiliza somente o espaço necessário até o limite especificado 
 	- indice se inicia em 1
 	- funções de string
 ```sql
