@@ -249,6 +249,15 @@ CREATE TABLE film_actor(
     FOREIGN KEY (actor_id) REFERENCES Actor (actor_id),
     FOREIGN KEY (film_id) REFERENCES Film (film_id)
 );
+
+-- outra forma de refereciar chaves extrangeiras
+
+CREATE TABLE cancao(
+cancao_id INT PRIMARY KEY AUTO_INCREMENT,
+nome VARCHAR(50) NOT NULL,
+    album_id INT NOT NULL,
+FOREIGN KEY (album_id) REFERENCES album (album_id)
+);
 ```
 
 ## cheat sheet
