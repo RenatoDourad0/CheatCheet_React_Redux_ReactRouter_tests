@@ -85,6 +85,8 @@ version: "3"       // versão dos comandos a serem utilizados no arquivo
 services:
   <nome-do-serviço>:
     build: <nome-da-imagem-ou-caminho-Dockerfile>       // imagem a ser utilizada (build no caso de se contruir a imagem na hora a partir do Dockerfile e image se usar uma imagem pronta)
+    container_name: <nome-container>
+    working_dir: <caminho-padrão>
     restart: <metodo-de-reinicialização>       // método de reinicialização em caso de queda do container (pode ter os valores - no, on-failure, always, unless-stopped)
     ports:        // mapeamento de portas em forma de lista 
       - <porta-local>:<porta-container>
@@ -94,6 +96,14 @@ services:
       - <caminho-local-ou-nome-volume-virtual>:<caminho-container>
     networks:          // mapeamento de redes em forma de lista
       - <nome-da-rede>
+    environment:
+      - <nome-variavel>=<valor>
+   
+   # interativo
+   stdin_open: true
+   tty: true
+   # oque roda ao iniciar o container
+    command: sh
   database:
     image: betrybe/docker-compose-example-database:v1
     restart: always
