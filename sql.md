@@ -232,7 +232,7 @@ USE trybe_flix;
 CREATE TABLE actor(
     actor_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL
-);
+) engine=InnoDB;
 
 -- E a tabela film
 CREATE TABLE film(
