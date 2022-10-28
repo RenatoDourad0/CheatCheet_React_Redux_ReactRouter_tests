@@ -14,3 +14,7 @@
 - express
 ```json
 ```
+
+## scripts e comandos
+- para auto correção adicionar este script ao package.json (confirmar se os arquivos não necessarios de lint estão na chave eslinignore do package.json ou no .eslintignore)
+- ```"lint:fix":"eslint --fix ./*.js"```
