@@ -1,6 +1,6 @@
 # node.js
 
-## leitura e esqcrita de arquivos
+## leitura e escrita de arquivos com fs
   -  terceiro parâmentro flag opcional
       - `w` para escrita
       - `wx` lança errro caso o arquivo exista
@@ -35,4 +35,20 @@ async function main() {
 }
 
 main()
+```
+
+## express
+- inicializando
+```js
+// src/app.js
+const express = require('express');
+
+const app = express();
+
+module.exports = app;
+
+// src/server.js
+const app = require('./app');
+
+app.listen(3001, () => console.log('server running on port 3001'));
 ```
