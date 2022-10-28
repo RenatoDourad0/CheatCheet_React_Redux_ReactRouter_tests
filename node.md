@@ -38,6 +38,39 @@ main()
 ```
 
 ## express
+- ambiente
+  - `npm init -y` 
+  - `npm i express`
+  - `npm i nodemon -D`
+  - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
+    - eslint para trybe: 
+      - `npm i eslint@6.8 eslint-config-trybe-backend@1.0 -D` 
+      - ```
+        // eslintrc.json
+        {
+        "env": {
+          "es2020": true
+        },
+        "extends": "trybe-backend",
+        "rules": {
+          "sonarjs/no-duplicate-string": ["error", 5]
+        }
+        }
+        ```
+  - `touch .eslintignore` - node_modules, ./*.config.js
+  - `git init`
+  - `touch .gitignore` - node_modules, .env
+  - adicionar ao package.json
+```js
+"main": "src/server.js"
+"scripts": {
+"start": "node src/server.js",
+"dev": "nodemon src/server.js",
+"lint": "eslint --no-inline-config --no-error-on-unmatched-pattern -c .eslintrc.json .",
+"lint:fix":"eslint --fix --ext .js,.jsx ." // adicionar extenções desejadas
+},
+```
+
 - inicializando
 ```js
 // src/app.js
