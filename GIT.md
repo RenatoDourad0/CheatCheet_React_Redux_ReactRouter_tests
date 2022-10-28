@@ -1,5 +1,23 @@
 * [curso udemy](https://www.udemy.com/course/git-completo-do-basico-ao-avancado/learn/lecture/6526432#overview) 
 
+## configurações globais
+```bash
+git config --global user.name "SEU NOME AQUI"
+git config --global user.email SEU EMAIL AQUI
+git config --global core.editor SEU EDITOR AQUI (cat ou vim, por exemplo)
+git config --global core.excludesfile ~/.gitignore (Seta arquivos a serem ignorados)
+git config --list -> Verifica as configurações existentes na sua máquina
+```
+
+## alterando remote
+```bash
+git remote -v
+git remote show <nome-remoto>
+git remote add <nome-remoto> <caminho-remoto>
+git remote rm <nome-remoto>
+git remote rename <nome-remoto> <novo-nome>
+```
+
 ## checkout
 
 * pode ser feito pelo hash do commit, pelo nome da branch ou pelo nome do arquivo/pasta
