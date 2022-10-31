@@ -41,8 +41,7 @@ main()
 - ambiente
   - `npm init -y` 
   - `npm i express`
-  - `npm i nodemon -D`
-  - `npm install -D mocha@10.0 chai@4.3`
+  - `npm i -D nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0` - versões especificas somente para trybe
   - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
     - eslint para trybe: 
       - `npm i eslint@6.8 eslint-config-trybe-backend@1.0 -D` 
@@ -61,6 +60,7 @@ main()
   - `touch .eslintignore` - node_modules, ./*.config.js
   - `git init`
   - `touch .gitignore` - node_modules, .env
+  - criar pastas src e tests. Dentro de src a pasta files. Dentro de tests as pastas unit e integration
   - adicionar ao package.json
 ```js
 "main": "src/server.js"
@@ -77,15 +77,23 @@ main()
 ```js
 // src/app.js
 const express = require('express');
-
 const app = express();
-
+app.use(express.json());
+// ...
 module.exports = app;
 
 // src/server.js
 const app = require('./app');
-
 app.listen(3001, () => console.log('server running on port 3001'));
+
+// tests/integration/foo.test.js
+const app = require('../../src/app')
+const chai = require('chai');
+const chaiHttp = require('chai-http');
+const sinon = require('sinon');
+
+const { expect } = chai;
+chai.use(chaiHttp);
 ```
 
 - sintaxe rotas
@@ -133,3 +141,49 @@ app.get('/', (req, res, next) => {
       - `/:` o indicador de que um parametro será passado
       - `variavelN` o valor a ser recebido
       - dado disponivel na chave `params` sempre em formato de string
+
+- testes com mocha
+  - recomenda-se não usar arrow function, e sim declarar atraves da palavra function
+  - funções `beforeEach() e afterEach()` para setup e teardown
+  - AAA (triple A) - técnica para escrita de testes - arrange / act / assert
+```js
+describe('Foo', function () {
+  beforeEach(function() {
+  });
+  afterEach(function() {
+  });
+  it('Foo', async function () {
+    const response = await chai
+        .request(app)
+        .get(<route>);
+    expect(response.status).to.be.equals(200);
+    const output = <output-esperado>;
+    expect(response.body.<property>).to.deep.equal(output);
+  });
+})
+```
+  - mocks com Sinon
+    - Stubs são objetos que podemos utilizar para simular interações com dependências externas ao que estamos testando de fato
+    - o escopo da chamada ao sinon deve ser o mais local o possível (dentro do it) pois se mais de um teste usa aquela função haverá conflito entre os retornos
+    - `sinon.stub(<modulo>, '<função>').resolves(<valor-retornado>)`
+    - `sinon.restore()` para teardown do stub
+```js
+// ex. com função readFile do módulo fs
+
+const fs = require('fs');
+const mockFile = JSON.stringify({ 
+  brands: [
+    {
+      id: 1,
+      name: 'Lindt & Sprungli',
+    }]
+});
+
+// describe('teste API', function () {
+// describe('Usando o método GET em /', function () {
+//  it('Retorna a lista completa', async function () {
+      sinon.stub(fs.promises, 'readFile')
+              .resolves(mockFile);
+//  });
+// });
+```
