@@ -42,6 +42,7 @@ main()
   - `npm init -y` 
   - `npm i express`
   - `npm i nodemon -D`
+  - `npm install -D mocha@10.0 chai@4.3`
   - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
     - eslint para trybe: 
       - `npm i eslint@6.8 eslint-config-trybe-backend@1.0 -D` 
@@ -67,7 +68,8 @@ main()
 "start": "node src/server.js",
 "dev": "nodemon src/server.js",
 "lint": "eslint --no-inline-config --no-error-on-unmatched-pattern -c .eslintrc.json .",
-"lint:fix":"eslint --fix --ext .js,.jsx ." // adicionar extenções desejadas
+"lint:fix":"eslint --fix --ext .js,.jsx ." // adicionar extenções desejadas,
+"test":"mocha tests/**/*.test.js --exit"
 },
 ```
 
