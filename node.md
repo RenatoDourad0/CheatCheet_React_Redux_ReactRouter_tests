@@ -85,3 +85,49 @@ const app = require('./app');
 
 app.listen(3001, () => console.log('server running on port 3001'));
 ```
+
+- sintaxe rotas
+  - `'/ab?cd'` o caractere anterior ao `?` (b) é opcional
+  - `'/ab+cd'` o caractere anterior ao `+` (b) pode se repetir
+  - `'/ab*cd'` o `*` representa um conjunto de caracteres aleatórios
+  - `'/a(bc)?de'` o `( )` agrupa caracteres
+
+- requisição GET
+```js
+app.get('/', (req, res, next) => {
+  try {
+  res.status(200).json({ message: 'Olá Mundo!' }));
+  next();
+} catch(e) {
+  res.status(500).json({message: e.message});
+}}, (req, res) => {
+...
+})
+```
+  - parâmetro `res`
+    - res.download()	Solicita que seja efetuado o download de um arquivo
+    - res.end()	Termina o processo de resposta
+    - res.json()	Envia uma resposta JSON
+    - res.jsonp()	Envia uma resposta JSON com suporta ao JSONP
+    - res.redirect()	Redireciona uma solicitação
+    - res.render()	Renderiza um modelo de visualização
+    - res.send()	Envia uma resposta de vários tipos
+    - res.sendFile	Envia um arquivo como um fluxo de octeto
+    - res.sendStatus()	Configura o código do status de resposta e envia a sua representação em sequência de caracteres como o corpo de resposta
+  
+  - requisição GET por query
+    - `req.query` 
+    - `/rota?variavel1=valor&variavel1=valor&variavelN=valor`
+      - `/rota` é a rota a se buscar
+      - `?` é o inicio da query
+      - `variavel1=valor` são os valores a serem passados
+      - `&` é o separador entre valores
+      - dado disponivel na chave `query` sempre em formato de string
+
+  - requisição GET por parametros
+    - `req.params`
+    - `/rota/:variavelX/:varivelZ` ex: /user/3345/active
+      - `/rota` é a rota a se buscar
+      - `/:` o indicador de que um parametro será passado
+      - `variavelN` o valor a ser recebido
+      - dado disponivel na chave `params` sempre em formato de string
