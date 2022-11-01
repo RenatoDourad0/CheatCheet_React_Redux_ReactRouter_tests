@@ -4,41 +4,44 @@
   -  terceiro parâmentro flag opcional
       - `w` para escrita
       - `wx` lança errro caso o arquivo exista
-  - escrita
-```js
- const fs = require('fs').promises;
- const path = require('path');
- 
- async function main() {
-  try {
-    await fs.writeFile(path.resolve(__dirname, './meu-arquivo.txt'), 'Meu textão');
-    console.log('Arquivo escrito com sucesso!');
-  } catch (err) {
-    console.error(`Erro ao escrever o arquivo: ${err.message}`);
-  }
-}
-
-main()
- ```
   - leitura
 ```js
 const fs = require('fs').promises;
 const path = require('path');
 
-async function main() {
+async function readData() {
   try {
-    const data = await fs.readFile(path.resolve(__dirname, './meu-arquivo.txt'), 'utf-8');
-    console.log(data);
+    const json = await fs.readFile(path.resolve(__dirname, './meu-arquivo.txt'), 'utf-8');
+    const data = JSON.parse(data);
+    return data;
+    console.log('arquivo lido com sucesso');
   } catch (err) {
     console.error(`Erro ao ler o arquivo: ${err.message}`);
   }
 }
-
-main()
 ```
+  - escrita
+```js
+ const fs = require('fs').promises;
+ const path = require('path');
+ 
+ async function updateFile(id, newData) {
+  try {
+    const oldFile = await readData();
+    // operação com arquivo antigo
+    // const index = oldFile.<prop>.findIndex(...);
+    // oldFile.<prop>[index] = { id, ...newData };
+    const newFile = JSON.stringify(oldFile);
+    await fs.writeFile(path.resolve(__dirname, './meu-arquivo.txt'), newFile);
+    console.log('Arquivo escrito com sucesso!');
+  } catch (err) {
+    console.error(`Erro ao escrever o arquivo: ${err.message}`);
+  }
+}
+ ```
 
 ## express
-- ambiente
+### ambiente
   - `npm init -y` 
   - `npm i express`
   - `npm i -D nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0` - versões especificas somente para trybe
@@ -69,11 +72,11 @@ main()
 "dev": "nodemon src/server.js",
 "lint": "eslint --no-inline-config --no-error-on-unmatched-pattern -c .eslintrc.json .",
 "lint:fix":"eslint --fix --ext .js,.jsx ." // adicionar extenções desejadas,
-"test":"mocha tests/**/*.test.js --exit"
+"tests":"mocha tests/**/*.test.js --exit"
 },
 ```
 
-- inicializando
+### inicializando
 ```js
 // src/app.js
 const express = require('express');
@@ -91,11 +94,13 @@ const app = require('../../src/app')
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const sinon = require('sinon');
+const fs = require('fs').promisses;
 
 const { expect } = chai;
 chai.use(chaiHttp);
 ```
 
+### definições
 - sintaxe rotas
   - `'/ab?cd'` o caractere anterior ao `?` (b) é opcional
   - `'/ab+cd'` o caractere anterior ao `+` (b) pode se repetir
@@ -125,6 +130,12 @@ app.get('/', (req, res, next) => {
     - res.sendFile	Envia um arquivo como um fluxo de octeto
     - res.sendStatus()	Configura o código do status de resposta e envia a sua representação em sequência de caracteres como o corpo de resposta
   
+  - parâmentro `req`
+    - req.params acessa os paramentros da requisição
+    - req.query acessa as queries da requisição
+    - req.path acessa o caminho da requisição
+    - req.body acessa o corpo da requisição
+    
   - requisição GET por query
     - `req.query` 
     - `/rota?variavel1=valor&variavel1=valor&variavelN=valor`
@@ -142,7 +153,7 @@ app.get('/', (req, res, next) => {
       - `variavelN` o valor a ser recebido
       - dado disponivel na chave `params` sempre em formato de string
 
-- testes com mocha
+### testes com mocha
   - recomenda-se não usar arrow function, e sim declarar atraves da palavra function
   - funções `beforeEach() e afterEach()` para setup e teardown
   - AAA (triple A) - técnica para escrita de testes - arrange / act / assert
@@ -153,20 +164,23 @@ describe('Foo', function () {
   afterEach(function() {
   });
   it('Foo', async function () {
-    const response = await chai
-        .request(app)
-        .get(<route>);
-    expect(response.status).to.be.equals(200);
     const output = <output-esperado>;
-    expect(response.body.<property>).to.deep.equal(output);
+    const response = await chai
+      .request(app)
+      .put(<route>)
+      .send(<dados-do-body>);
+    expect(response.status).to.be.equals(200);
+    expect(response.body).to.have.property(<property>);
+    expect(response.body).to.deep.equal(output);
   });
 })
 ```
-  - mocks com Sinon
-    - Stubs são objetos que podemos utilizar para simular interações com dependências externas ao que estamos testando de fato
-    - o escopo da chamada ao sinon deve ser o mais local o possível (dentro do it) pois se mais de um teste usa aquela função haverá conflito entre os retornos
-    - `sinon.stub(<modulo>, '<função>').resolves(<valor-retornado>)`
-    - `sinon.restore()` para teardown do stub
+#### mocks com Sinon
+
+- Stubs são objetos que podemos utilizar para simular interações com dependências externas ao que estamos testando de fato
+- o escopo da chamada ao sinon deve ser o mais local o possível (dentro do it) pois se mais de um teste usa aquela função haverá conflito entre os retornos
+- `sinon.stub(<modulo>, '<função>').resolves(<valor-retornado>)`
+- `sinon.restore()` para teardown do stub (aftereach)
 ```js
 // ex. com função readFile do módulo fs
 
@@ -182,8 +196,8 @@ const mockFile = JSON.stringify({
 // describe('teste API', function () {
 // describe('Usando o método GET em /', function () {
 //  it('Retorna a lista completa', async function () {
-      sinon.stub(fs.promises, 'readFile')
-              .resolves(mockFile);
+      sinon.stub(fs.promises, 'readFile').resolves(mockFile);
+      expect(fs.readFile.called).to.be.true;
 //  });
 // });
 ```
