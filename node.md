@@ -1,6 +1,6 @@
 # node.js
 
-## leitura e escrita de arquivos com fs
+### leitura e escrita de arquivos com fs
   -  terceiro parâmentro flag opcional
       - `w` para escrita
       - `wx` lança errro caso o arquivo exista
