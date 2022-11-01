@@ -152,6 +152,21 @@ app.get('/', (req, res, next) => {
       - `/:` o indicador de que um parametro será passado
       - `variavelN` o valor a ser recebido
       - dado disponivel na chave `params` sempre em formato de string
+      
+  - requisições com body
+    - desestruturar as propriedades do body e depois re-estruturar. (para não trazer mais informações do que o necessário)
+```js
+app.put('<route>', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, brandId } = req.body;
+    // ...
+  } catch (e) {
+    if (...) return res.status(404).json({ message: ""});
+    return res.status(500).end();
+  }
+})
+```
 
 ### testes com mocha
   - recomenda-se não usar arrow function, e sim declarar atraves da palavra function
