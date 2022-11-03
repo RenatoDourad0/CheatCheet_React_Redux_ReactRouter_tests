@@ -43,8 +43,9 @@ async function readData() {
 ## express
 ### ambiente
   - `npm init -y` 
-  - `npm i express`
-  - `npm i -D nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0` - versões especificas somente para trybe
+  - `npm i express express-async-errors@3.1 cors@2.8 morgan`
+  - `npm i -D nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0` 
+    - versões especificas somente para trybe
   - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
     - eslint para trybe: 
       - `npm i eslint@6.8 eslint-config-trybe-backend@1.0 -D` 
@@ -63,7 +64,7 @@ async function readData() {
   - `touch .eslintignore` - node_modules, ./*.config.js
   - `git init`
   - `touch .gitignore` - node_modules, .env
-  - criar pastas src e tests. Dentro de src a pasta files. Dentro de tests as pastas unit e integration
+  - criar pastas src e tests. Dentro de src a pasta files, middlewares, routes. Dentro de tests as pastas unit e integration
   - adicionar ao package.json
 ```js
 "main": "src/server.js"
@@ -80,7 +81,9 @@ async function readData() {
 ```js
 // src/app.js
 const express = require('express');
+require('express-async-errors');
 const app = express();
+app.use(morgan('dev'));
 app.use(express.json());
 // ...
 module.exports = app;
@@ -112,12 +115,9 @@ chai.use(chaiHttp);
 app.get('/', (req, res, next) => {
   try {
   res.status(200).json({ message: 'Olá Mundo!' }));
-  next();
 } catch(e) {
   res.status(500).json({message: e.message});
-}}, (req, res) => {
-...
-})
+}})
 ```
   - parâmetro `res`
     - res.download()	Solicita que seja efetuado o download de um arquivo
@@ -166,6 +166,81 @@ app.put('<route>', async (req, res) => {
     return res.status(500).end();
   }
 })
+```
+
+- middlewares
+  -  podem ser criados (função) ou instalados (pacote) e aplicados globalmente ou na chamada da rota
+  - ex: `express.json(), express.static(<path>), morgan('dev'), cors()`
+    - static: permite servir arquivos estáticos em um caminho automaticamente
+    - morgan: produx logs da aplicação
+    - cors: permite definir politica de cors. Conexão entre front e back 
+  - middlewares globais podem ser definidos em `app.use(<middleware>)`. Somente as rotas abaixo dessa declaração passarão por esse middleware
+  - middlewares locais são definidos como uma função que tem acesso aos paramentros `req, res, next` e podem fazer uma lógica e responder a requisição ou  passar para o proximo middleware com `next()`
+  -  Express já vem com um middleware de erro padrão pronto para lidar com a maior parte dos casos comuns através de um retorno em html. Este middleware só entra em ação se a requisição chegar ao final do código sem ser respondida. Caso queira reconfigurar a mensagem de resposta basta definir no final do código um app.use com uma chamada de rota com a mensagem desejada. Ex. `app.use((req, res) => res.sendStatus(404))`
+```js
+// global
+app.use(express.json());
+
+// local
+function meuMiddleware(req, res, next) {
+// ...
+next();
+}
+app.get('<rota>', meuMiddleware, (req, res) => {
+// ...
+});
+```
+  - middleware de erro
+    - sempre devem vir depois de rotas e outros middlewares
+    - só recebem requisições se algum middleware lançar um erro ou chamar next(err)
+    - sempre devem receber quatro parâmetros
+    - O Express utiliza a quantidade de parâmetros que uma função recebe para determinar se ela é um middleware de erro ou um middleware comum
+    - pode ser encadeado passando `err` como parametro de `next()`, neste caso o express encaminha a requisição para o próximo middleware de erro ao invez de seguir o fluxo normal da rota
+```js
+app.use((err, _req, res, _next) => {
+  res.status(500).json({ message: `Algo deu errado! Mensagem: ${err.message}` });
+  
+// ou
+
+app.use((err, _req, _res, next) => {
+  console.error(err.stack);
+  // passa o erro para o próximo middleware
+  next(err);
+});
+
+app.use((err, _req, res, _next) => {
+  res.status(500).json({ message: `Algo deu errado! Mensagem: ${err.message}` });
+});
+```
+  - middleware de rota
+    - `const router = express.Router()`
+    - o Router é um middleware que “agrupa” várias rotas em um mesmo lugar
+```js
+// src/app.js
+
+const express = require('express');
+require('express-async-errors');
+const morgan = require('morgan');
+// require no nosso novo router
+const teamsRouter = require('./routes/teamsRouter');
+
+const app = express();
+app.use(morgan('dev'));
+app.use(express.static('/images'));
+app.use(express.json());
+// monta o router na rota /teams
+app.use('/teams', teamsRouter);
+
+app.use((err, _req, _res, next) => {
+  console.error(err.stack);
+  next(err);
+});
+
+app.use((err, _req, res, _next) => {
+  res.status(500).json({ message: `Algo deu errado! Mensagem: ${err.message}` });
+});
+
+module.exports = app;
 ```
 
 ### testes com mocha
