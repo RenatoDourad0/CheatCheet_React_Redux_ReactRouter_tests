@@ -82,9 +82,13 @@ async function readData() {
 // src/app.js
 const express = require('express');
 require('express-async-errors');
+const morgan = require('morgan');
+const cors = require('cors');
+
 const app = express();
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(cors());
 // ...
 module.exports = app;
 
@@ -215,32 +219,53 @@ app.use((err, _req, res, _next) => {
   - middleware de rota
     - `const router = express.Router()`
     - o Router é um middleware que “agrupa” várias rotas em um mesmo lugar
+    - os caminhos das rotas podem ser definidos relativos ao app.js (ex: `app.use('/teams', teamsRouter)` e em teams.js router.get('/')) ou como rotas absolutas no arquivo de rotas (ex: `app.use(teamsRouter)` e em teams.js router.get('/teams'))
+    - no exemplo abaixo uma rota definida com router.get('/:id') na verdade se torna acessível por meio de /teams/:id
 ```js
 // src/app.js
 
-const express = require('express');
-require('express-async-errors');
-const morgan = require('morgan');
-// require no nosso novo router
+// ...
+// importa arquivo com rotas
 const teamsRouter = require('./routes/teamsRouter');
-
+// ...
 const app = express();
-app.use(morgan('dev'));
-app.use(express.static('/images'));
-app.use(express.json());
+// ...
 // monta o router na rota /teams
 app.use('/teams', teamsRouter);
-
-app.use((err, _req, _res, next) => {
-  console.error(err.stack);
-  next(err);
-});
-
-app.use((err, _req, res, _next) => {
-  res.status(500).json({ message: `Algo deu errado! Mensagem: ${err.message}` });
-});
-
+// ...
 module.exports = app;
+
+// src/routes/teamsRouter
+
+// cria um router middleware
+const router = express.Router();
+// middlewares podem ser usados da mesma forma
+router.use(<middleware>);
+// o path é relativo à rota em que o router foi montado ou seja a rota desse GET é `/teams`
+router.get('/', (req, res) => res.json(teams));  
+//  ...
+module.exports = router;
+```
+- arquivo barrel para middlewares de rota
+  - arquivo que agrega os routes com objetivo de melhorar a organização do código
+  - criar um index.js na pasta routes
+  - importar todos os arquivos routers
+  - exportar um router com todos unidos
+  - importar e usar no app somente esse router
+```js
+// routes/index.js
+
+const express = require('express');
+
+const router = express.router();
+
+const router1 = require('./router1')
+const router2 = require('./router2')
+
+router.use(router1);
+router.use(router2);
+
+module.exports = router;
 ```
 
 ### testes com mocha
