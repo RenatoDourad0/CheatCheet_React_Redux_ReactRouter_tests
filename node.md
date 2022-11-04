@@ -43,7 +43,7 @@ async function readData() {
 ## express
 ### ambiente
   - `npm init -y` 
-  - `npm i express express-async-errors@3.1 cors@2.8 morgan`
+  - `npm i express express-async-errors@3.1 cors@2.8 morgan mysql2@2.3`
   - `npm i -D nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0` 
     - versões especificas somente para trybe
   - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
@@ -64,7 +64,7 @@ async function readData() {
   - `touch .eslintignore` - node_modules, ./*.config.js
   - `git init`
   - `touch .gitignore` - node_modules, .env
-  - criar pastas src e tests. Dentro de src a pasta files, middlewares, routes. Dentro de tests as pastas unit e integration
+  - criar pastas src e tests. Dentro de src a pasta files, middlewares, routes e db. Dentro de tests as pastas unit e integration
   - adicionar ao package.json
 ```js
 "main": "src/server.js"
@@ -94,7 +94,29 @@ module.exports = app;
 
 // src/server.js
 const app = require('./app');
-app.listen(3001, () => console.log('server running on port 3001'));
+const connection = require('./db/connection');
+const port = 3001;
+app.listen(port, async () => {
+  console.log(`API TrybeCash está sendo executada na porta ${port}`);
+  const [ result ] = await connection.execute('SELECT 1');
+  if (result) {
+    console.log('MySQL connection OK');
+  }
+});
+
+// src/db/connection.js
+const mysql = require('mysql2/promise');
+const connection = mysql.createPool({
+  host: <ip-ou-nome-host>,
+  port: <prota>,
+  user: <nome-usuario>,
+  password: <senha-usuario>,
+  database: <nome-base-de-dados>,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
+module.exports = connection;
 
 // tests/integration/foo.test.js
 const app = require('../../src/app')
@@ -139,6 +161,7 @@ app.get('/', (req, res, next) => {
     - req.query acessa as queries da requisição
     - req.path acessa o caminho da requisição
     - req.body acessa o corpo da requisição
+    - req.headers acessa os valores passados no header da requisição
     
   - requisição GET por query
     - `req.query` 
