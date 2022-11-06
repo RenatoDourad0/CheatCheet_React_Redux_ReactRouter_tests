@@ -24,6 +24,19 @@
   - ` docker run --name <nome> -v /Users/renatocampos/mysql/<nome-pasta>:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=<senha> -d mysql:<tag>`
   - `docker exec -it <id_container> bash`
   - `mysql -u root -p`
+  - com `docker-compose.yaml`
+```
+version: '3'
+services:
+  database:
+    image: mysql:<tag>
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: process.env.MYSQL_ROOT_PASSWORD
+      MYSQL_DATABASE: process.env.MYSQL_DATABASE
+    ports:
+      - "<local>:3306"
+```
 
 ## comandos de definição
   - `CREATE` Para criar bancos de dados, tabelas, índices, views, procedures, functions e triggers;
