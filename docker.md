@@ -207,3 +207,16 @@ RUN npm start
     - `docker run --name <nome-container> -e MYSQL_ROOT_PASSWORD=<senha-sql> -d mysql:<tag>` 
   - criar um segundo container que se conecta ao primeiro
     - `docker run -it --network <nome-rede> --rm mysql mysql -h<nome-host> -u<nome-usuario> -p`
+  - com docker-compose.yaml
+```
+version: '3'
+services:
+  database:
+    image: mysql:8.0.29
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: trybecashdb
+    ports:
+      - "33060:3306"
+```
