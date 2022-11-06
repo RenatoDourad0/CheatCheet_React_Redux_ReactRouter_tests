@@ -1,49 +1,8 @@
 # node.js
-
-### leitura e escrita de arquivos com fs
-  -  terceiro parâmentro flag opcional
-      - `w` para escrita
-      - `wx` lança errro caso o arquivo exista
-  - leitura
-```js
-const fs = require('fs').promises;
-const path = require('path');
-
-async function readData() {
-  try {
-    const json = await fs.readFile(path.resolve(__dirname, './meu-arquivo.txt'), 'utf-8');
-    const data = JSON.parse(data);
-    return data;
-    console.log('arquivo lido com sucesso');
-  } catch (err) {
-    console.error(`Erro ao ler o arquivo: ${err.message}`);
-  }
-}
-```
-  - escrita
-```js
- const fs = require('fs').promises;
- const path = require('path');
- 
- async function updateFile(id, newData) {
-  try {
-    const oldFile = await readData();
-    // operação com arquivo antigo
-    // const index = oldFile.<prop>.findIndex(...);
-    // oldFile.<prop>[index] = { id, ...newData };
-    const newFile = JSON.stringify(oldFile);
-    await fs.writeFile(path.resolve(__dirname, './meu-arquivo.txt'), newFile);
-    console.log('Arquivo escrito com sucesso!');
-  } catch (err) {
-    console.error(`Erro ao escrever o arquivo: ${err.message}`);
-  }
-}
- ```
-
 ## express
 ### ambiente
   - `npm init -y` 
-  - `npm i express express-async-errors@3.1 cors@2.8 morgan mysql2@2.3`
+  - `npm i express express-async-errors@3.1 cors@2.8 morgan mysql2@2.3 dotenv@16.0.1`
   - `npm i -D nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0` 
     - versões especificas somente para trybe
   - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
@@ -61,10 +20,28 @@ async function readData() {
         }
         }
         ```
+  - `touch .env` na raiz da aplicação
+```js
+MYSQL_HOST=<ip-ou-nome-host>
+MYSQL_PORT=<prota> // 3306
+MYSQL_USER=<nome-usuario>
+MYSQL_PASSWORD=<senha-usuario>
+MYSQL_DATABASE_NAME=<nome-banco-de-dados>
+MYSQL_WAIT_FOR_CONNECTIONS=true
+MYSQL_CONNECTION_LIMIT=10
+MYSQL_QUEUE_LIMIT=0
+```
+  - `touch .env-example` - copia da estrutura acima para ser enviado ao gitHub como orientação de preenchimento
   - `touch .eslintignore` - node_modules, ./*.config.js
   - `git init`
   - `touch .gitignore` - node_modules, .env
-  - criar pastas src e tests. Dentro de src a pasta files, middlewares, routes e db. Dentro de tests as pastas unit e integration
+  - criar pastas src e tests
+    - em src a pasta middlewares, routes e db
+      - em routes arquivos com rotas usando o middleware routes 
+      - em middlewares arquivos com funções que auxiliam as rotas 
+      - em db arquivo connection e arquivos com prepared statements (funções com chamadas a DB) para as rotas
+    - em tests as pastas unit e integration
+      - arquivos <nome>.test.js 
   - adicionar ao package.json
 ```js
 "main": "src/server.js"
@@ -76,7 +53,7 @@ async function readData() {
 "tests":"mocha tests/**/*.test.js --exit"
 },
 ```
-
+  - `git commit -am 'definição ambiente'`
 ### inicializando
 ```js
 // src/app.js
@@ -92,9 +69,25 @@ app.use(cors());
 // ...
 module.exports = app;
 
+// src/db/connection.js
+const mysql = require('mysql2/promise');
+const connection = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  port: process.env.MYSQL_PORT,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE_NAME,
+  waitForConnections: process.env.MYSQL_WAIT_FOR_CONNECTIONS,
+  connectionLimit: process.env.MYSQL_CONNECTION_LIMIT,
+  queueLimit: process.env.MYSQL_QUEUE_LIMIT,
+});
+module.exports = connection;
+  
 // src/server.js
 const app = require('./app');
 const connection = require('./db/connection');
+require('dotenv').config();
+  
 const port = 3001;
 app.listen(port, async () => {
   console.log(`API TrybeCash está sendo executada na porta ${port}`);
@@ -105,39 +98,72 @@ app.listen(port, async () => {
   }
 });
 
-// src/db/connection.js
-const mysql = require('mysql2/promise');
-const connection = mysql.createPool({
-  host: <ip-ou-nome-host>,
-  port: <prota>,
-  user: <nome-usuario>,
-  password: <senha-usuario>,
-  database: <nome-base-de-dados>,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
-module.exports = connection;
-
 // tests/integration/foo.test.js
 const app = require('../../src/app')
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const sinon = require('sinon');
-const fs = require('fs').promisses;
+const connection = require('../../src/db/connection');
 
-const { expect } = chai;
-chai.use(chaiHttp);
+const { expect, use } = chai;
+use(chaiHttp);
 ```
 
-### definições
-- sintaxe rotas
-  - `'/ab?cd'` o caractere anterior ao `?` (b) é opcional
-  - `'/ab+cd'` o caractere anterior ao `+` (b) pode se repetir
-  - `'/ab*cd'` o `*` representa um conjunto de caracteres aleatórios
-  - `'/a(bc)?de'` o `( )` agrupa caracteres
+### SQL
+- sintaxe prepared statements
+    - arrow function que utiliza a função execute do objeto connection
+    - `connection.execute()` método ASSINCRONO que recebe uma string (utiliando craze para permitir quebra de linha) como primeiro argumento, um array como segundo e retorna uma promisse
+    - ? representa placeholders 
+    - a ordem em que as dados são passadas no array deve ser igual a ordem que as chaves foram passadas na string
+    - quando utilizada deve ser chamada com await
+    - prepared statements previne ateques de sql injection
+```js
+// src/db/peopleDB.js
 
-- requisição GET
+const connection = require('./connection');
+  
+const findById = async (id) => connection.execute('SELECT * FROM people WHERE id = ?', [id]);
+  
+const insert = async (person) => {
+  const [{ insertId }] = await connection.execute(
+    `INSERT INTO people 
+        (first_name, last_name, email, phone) VALUES (?, ?, ?, ?)`,
+      [person.firstName, person.lastName, person.email, person.phone],
+    );
+  const [[personWithId]] = await findById(insertId);
+  return personWithId;
+  }
+const findAll = async () => await connection.execute('SELECT * FROM people');
+
+module.exports = { insert, findAll, findById };
+  
+// src/routes/peopleRoutes.js
+
+const peopleDB = require('../db/peopleDB');
+// ...
+router.post('/', (req, res) => {
+  const person = req.body;
+  try {
+    const result = peopleDB.insert(person);
+// ...
+    }
+});
+  
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [[result]] = await peopleDB.findById(id);
+// ...
+    }
+});
+```
+- retorno em array
+  - deve-se sempre desestruturar o retorno
+    - se o retorno for um objeto desestruturar em 2 arrays `const [[result]] = await peopleDB.findById(id);`
+    - se o retorno for um array desestruturar em um array `const [result] = await peopleDB.insert(person);`
+
+### definições
+- sintaxe
 ```js
 app.get('/', (req, res, next) => {
   try {
@@ -146,6 +172,14 @@ app.get('/', (req, res, next) => {
   res.status(500).json({message: e.message});
 }})
 ```
+  
+- sintaxe rotas
+  - `'/ab?cd'` o caractere anterior ao `?` (b) é opcional
+  - `'/ab+cd'` o caractere anterior ao `+` (b) pode se repetir
+  - `'/ab*cd'` o `*` representa um conjunto de caracteres aleatórios
+  - `'/a(bc)?de'` o `( )` agrupa caracteres
+
+- parâmetros
   - parâmetro `res`
     - res.download()	Solicita que seja efetuado o download de um arquivo
     - res.end()	Termina o processo de resposta
@@ -156,7 +190,6 @@ app.get('/', (req, res, next) => {
     - res.send()	Envia uma resposta de vários tipos
     - res.sendFile	Envia um arquivo como um fluxo de octeto
     - res.sendStatus()	Configura o código do status de resposta e envia a sua representação em sequência de caracteres como o corpo de resposta
-  
   - parâmentro `req`
     - req.params acessa os paramentros da requisição
     - req.query acessa as queries da requisição
@@ -164,25 +197,25 @@ app.get('/', (req, res, next) => {
     - req.body acessa o corpo da requisição
     - req.headers acessa os valores passados no header da requisição
     
-  - requisição GET por query
-    - `req.query` 
-    - `/rota?variavel1=valor&variavel1=valor&variavelN=valor`
-      - `/rota` é a rota a se buscar
-      - `?` é o inicio da query
-      - `variavel1=valor` são os valores a serem passados
-      - `&` é o separador entre valores
-      - dado disponivel na chave `query` sempre em formato de string
+- requisição GET por query
+  - `req.query` 
+  - `/rota?variavel1=valor&variavel1=valor&variavelN=valor`
+    - `/rota` é a rota a se buscar
+    - `?` é o inicio da query
+    - `variavel1=valor` são os valores a serem passados
+    - `&` é o separador entre valores
+    - dado disponivel na chave `query` sempre em formato de string
 
-  - requisição GET por parametros
-    - `req.params`
-    - `/rota/:variavelX/:varivelZ` ex: /user/3345/active
-      - `/rota` é a rota a se buscar
-      - `/:` o indicador de que um parametro será passado
-      - `variavelN` o valor a ser recebido
-      - dado disponivel na chave `params` sempre em formato de string
+- requisição GET por parametros
+  - `req.params`
+  - `/rota/:variavelX/:varivelZ` ex: /user/3345/active
+    - `/rota` é a rota a se buscar
+    - `/:` o indicador de que um parametro será passado
+    - `variavelN` o valor a ser recebido
+    - dado disponivel na chave `params` sempre em formato de string
       
-  - requisições com body
-    - desestruturar as propriedades do body e depois re-estruturar. (para não trazer mais informações do que o necessário)
+- requisições com body
+  - desestruturar as propriedades do body e depois re-estruturar. (para não trazer mais informações do que o necessário)
 ```js
 app.put('<route>', async (req, res) => {
   try {
@@ -218,6 +251,7 @@ app.get('<rota>', meuMiddleware, (req, res) => {
 // ...
 });
 ```
+  
   - middleware de erro
     - sempre devem vir depois de rotas e outros middlewares
     - só recebem requisições se algum middleware lançar um erro ou chamar next(err)
@@ -292,6 +326,46 @@ router.use(router2);
 module.exports = router;
 ```
 
+### leitura e escrita de arquivos com fs
+  -  terceiro parâmentro flag opcional
+      - `w` para escrita
+      - `wx` lança errro caso o arquivo exista
+  - leitura
+```js
+const fs = require('fs').promises;
+const path = require('path');
+
+async function readData() {
+  try {
+    const json = await fs.readFile(path.resolve(__dirname, './meu-arquivo.txt'), 'utf-8');
+    const data = JSON.parse(data);
+    return data;
+    console.log('arquivo lido com sucesso');
+  } catch (err) {
+    console.error(`Erro ao ler o arquivo: ${err.message}`);
+  }
+}
+```
+  - escrita
+```js
+ const fs = require('fs').promises;
+ const path = require('path');
+ 
+ async function updateFile(id, newData) {
+  try {
+    const oldFile = await readData();
+    // operação com arquivo antigo
+    // const index = oldFile.<prop>.findIndex(...);
+    // oldFile.<prop>[index] = { id, ...newData };
+    const newFile = JSON.stringify(oldFile);
+    await fs.writeFile(path.resolve(__dirname, './meu-arquivo.txt'), newFile);
+    console.log('Arquivo escrito com sucesso!');
+  } catch (err) {
+    console.error(`Erro ao escrever o arquivo: ${err.message}`);
+  }
+}
+ ```
+  
 ### testes com mocha
   - recomenda-se não usar arrow function, e sim declarar atraves da palavra function
   - funções `beforeEach() e afterEach()` para setup e teardown
@@ -320,23 +394,25 @@ describe('Foo', function () {
 - o escopo da chamada ao sinon deve ser o mais local o possível (dentro do it) pois se mais de um teste usa aquela função haverá conflito entre os retornos
 - `sinon.stub(<modulo>, '<função>').resolves(<valor-retornado>)`
 - `sinon.restore()` para teardown do stub (aftereach)
+- atenção para a formatação do retorno mockado. Deve ser identico ao retorno real (atenção especial em stubs do connection.execute() com os retornos em array)
 ```js
-// ex. com função readFile do módulo fs
+  it('Testando o cadastro de uma pessoa ', async function () {
+    sinon.stub(connection, 'execute').onFirstCall().resolves([{ insertId: 42 }]);
 
-const fs = require('fs');
-const mockFile = JSON.stringify({ 
-  brands: [
-    {
-      id: 1,
-      name: 'Lindt & Sprungli',
-    }]
-});
+    const response = await chai
+      .request(app)
+      .post('/people')
+      .send(
+        {
+          firstName: 'Luke',
+          lastName: 'Skywalker',
+          email: 'luke.skywalker@trybe.com',
+          phone: '851 678 4453',
+        },
+      );
 
-// describe('teste API', function () {
-// describe('Usando o método GET em /', function () {
-//  it('Retorna a lista completa', async function () {
-      sinon.stub(fs.promises, 'readFile').resolves(mockFile);
-      expect(fs.readFile.called).to.be.true;
-//  });
-// });
+    expect(response.status).to.equal(201);
+    expect(response.body).to.
+      deep.equal({ message: 'Pessoa cadastrada com sucesso com o id 42' });
+  });
 ```
