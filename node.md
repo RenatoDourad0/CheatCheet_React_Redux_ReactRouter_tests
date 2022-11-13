@@ -2,8 +2,8 @@
 ## express
 ### ambiente
   - `npm init -y` 
-  - `npm i express express-async-errors@3.1 cors@2.8 morgan mysql2@2.3 dotenv@16.0.1`
-  - `npm i -D nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0` 
+  - `npm i express express-async-errors@3.1 cors@2.8 morgan mysql2@2.3 dotenv@16.0.1 joi@17.6`
+  - `npm i -D nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0 nyc@15.1` 
     - versões especificas somente para trybe
   - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
     - eslint para trybe: 
@@ -50,7 +50,8 @@ MYSQL_QUEUE_LIMIT=0
 "dev": "nodemon src/server.js",
 "lint": "eslint --no-inline-config --no-error-on-unmatched-pattern -c .eslintrc.json .",
 "lint:fix":"eslint --fix --ext .js,.jsx ." // adicionar extenções desejadas,
-"tests":"mocha tests/**/*.test.js --exit"
+"tests":"mocha tests/**/*.test.js --exit",
+"test:coverage": "nyc --all --include src/models --include src/services --include src/controllers mocha tests/unit/**/*.js --exit"
 },
 ```
   - `git commit -am 'definição ambiente'`
@@ -365,6 +366,105 @@ async function readData() {
   }
 }
  ```
+
+### arquitetura MSC
+#### model
+  - É a camada mais próxima da base de dados
+  - responsavel por realizar operaçoes com a DB
+  - em `src` criar pasta `models`
+    - um arquivo *.model.js para cada entidade (tabela) da DB
+    - um arquivo index.js que importa todos os models e a connection e os exporta juntos (barrel)
+  - em `tests/unit` criar a psta `models`
+    - para fazer testes unitarios na camada model é preciso mockar a connection
+      - mockar retornos das chamadas ao connection com stub do sinon
+    - criar a pasta mocks com arquivos de extensão `*.model.mocks.js`
+    - criar os arquivos de teste com extensão *.model.test.js
+  - padrões comuns
+    - para inserts e updates a operação na DB retorna as chaves `insertId` e `affectedRows` respectivamente no formato [{}]. Já select retorna um array com os resultados no formato [[ ]]
+```js
+// create
+const insert = async (travel) => {
+  const columns = Object.keys(snakeize(travel))
+    .map((key) => `${key}`)
+    .join(', ');
+  const placeholders = Object.keys(travel)
+    .map((_key) => '?')
+    .join(', ');
+  const [{ insertId }] = await connection.execute(
+    `INSERT INTO travels (${columns}) VALUE (${placeholders})`,
+    [...Object.values(travel)],
+  );
+  return insertId;
+};
+  
+// read
+const findTravelById = async (travelId) => {
+  const [[result]] = await connection.execute(
+    'SELECT * FROM travels WHERE id = ?',
+    [travelId],
+  );
+  return camelize(result);
+};
+  
+// update
+const update = (data) => {
+  const [{affectedRows}] = await connection.execute(
+    'UPDATE travels SET driver_id = ? WHERE id = ?',
+    [driverId, travelId],
+  );
+};
+  
+// delete
+```
+
+#### service
+  - É a camada intermediária, entre base de dados e requisições
+  - responsavel por realizar validações de regras de negócio
+  - desacoplamento busca reduzir custo de manutenção (tempo)
+  - em `src` criar pasta `services`
+    - um arquivo *.service.js para cada entidade
+    - um arquivo index.js que importa todos os services e os exporta juntos (barrel)
+    - criar pasta validations
+      - criar arquivo schemas.js aonde se declara as validações (joy)
+      - criar arquivo validationsInputValues.js aonde se inicializa as validações
+  - em `tests/unit` criar a psta `services`
+    - para fazer testes unitarios na camada services é preciso mockar a camada model
+      - mockar retornos das funções do model (ao invés do connection) com stub do sinon 
+    - criar a pasta mocks com arquivos de extensão `*.service.mocks.js` 
+    - criar os arquivos de teste com extensão *.service.test.js
+```js
+// /*.service.js
+  
+// /validations/schema.js
+  
+// /validations/validationsInputValues.js
+  
+// /tests/unit/services/*.service.test.js
+```
+  
+#### controler
+  - É a camada intermediária, entre base de dados e requisições
+  - responsavel por realizar validações de regras de negócio
+  - desacoplamento busca reduzir custo de manutenção (tempo)
+  - em `src` criar pasta `services`
+    - um arquivo *.service.js para cada entidade
+    - um arquivo index.js que importa todos os services e os exporta juntos (barrel)
+    - criar pasta validations
+      - criar arquivo schemas.js aonde se declara as validações (joy)
+      - criar arquivo validationsInputValues.js aonde se inicializa as validações
+  - em `tests/unit` criar a psta `services`
+    - para fazer testes unitarios na camada services é preciso mockar a camada model
+    - criar a pasta mocks com arquivos de extensão `*.service.mocks.js`
+    - criar os arquivos de teste com extensão *.service.test.js
+```js
+// /*.service.js
+  
+// /validations/schema.js
+  
+// /validations/validationsInputValues.js
+  
+// /tests/unit/services/*.service.test.js
+```
   
 ### testes com mocha
   - recomenda-se não usar arrow function, e sim declarar atraves da palavra function
@@ -372,10 +472,8 @@ async function readData() {
   - AAA (triple A) - técnica para escrita de testes - arrange / act / assert
 ```js
 describe('Foo', function () {
-  beforeEach(function() {
-  });
-  afterEach(function() {
-  });
+  beforeEach();
+  afterEach(sinon.restore);
   it('Foo', async function () {
     const output = <output-esperado>;
     const response = await chai
@@ -385,11 +483,13 @@ describe('Foo', function () {
     expect(response.status).to.be.equals(200);
     expect(response.body).to.have.property(<property>);
     expect(response.body).to.deep.equal(output);
+    expect(response.affectedRows).to.be.equal(1);
+    expect(response.insertId).to.be.equal(1);
+    expect(response).to.be.a('array');
   });
 })
 ```
 #### mocks com Sinon
-
 - Stubs são objetos que podemos utilizar para simular interações com dependências externas ao que estamos testando de fato
 - o escopo da chamada ao sinon deve ser o mais local o possível (dentro do it) pois se mais de um teste usa aquela função haverá conflito entre os retornos
 - `sinon.stub(<modulo>, '<função>').resolves(<valor-retornado>)`
@@ -416,3 +516,10 @@ describe('Foo', function () {
       deep.equal({ message: 'Pessoa cadastrada com sucesso com o id 42' });
   });
 ```
+
+#### coverage com nyc
+  - `"test:coverage": "nyc --all --include src/models --include src/services --include src/controllers mocha tests/unit/**/*.js --exit"` é o script do package.json para executart teste de cobertura
+  
+  
+DUVIDAS 
+  Como tratar erros das requisiçoes da camada model. (try/catch nosconnection.execute?)
