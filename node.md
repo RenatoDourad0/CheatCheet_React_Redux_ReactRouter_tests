@@ -3,7 +3,7 @@
 ### ambiente
   - `npm init -y` 
   - `npm i express express-async-errors@3.1 cors@2.8 morgan mysql2@2.3 dotenv@16.0.1 joi@17.6`
-  - `npm i -D nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0 nyc@15.1` 
+  - `npm i -D nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0 sinon-chai nyc@15.1` 
     - versões especificas somente para trybe
   - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
     - eslint para trybe: 
@@ -445,7 +445,7 @@ const update = (data) => {
 #### controler
   - É a camada responsavel por controlar o recebimento de requisições, fazer validações de dados (que não envolvem regras de negócio) e chamar os serviços necessários para responder a requisição ou retornar erro
   - Existem dois tipos de erros:
-    - erros originados pelo cliente → occorrem quando as validações falham. Devem ser respondidos com informaçõessobre o erro.
+    - erros originados pelo cliente → occorrem quando as validações falham. Devem ser respondidos com informações sobre o erro.
     - erros originados na api → devem ser respondidos com status 500 e mensagem genérica para não expor informações sobre a construção da api.
   - em src criar a pasta utils
     - criar o arquivo errorMap.js em que se mapeia a propriedade type dos objetos de erro a um status específico
@@ -469,11 +469,11 @@ const update = (data) => {
       - na pasta mocks criar os arquivos *.controller.mock.js
       - para testar uma função controller deve-se criar os objetos req e res a serem passados como parametro e mockar a chamada ao serviço realizada nela. Além de os retornos das funções de resposta res.status e res.message
       - as verificações são feitas com base nas funções de resposta res.status e res.message, chcando a estrutura que foi passada em suas execuções
-      - uso do sinonChai permite fazer asserções mais diretas nos parâmetros de chamada do res.status e res.json (to.have.been.calledWith)
+      - uso do sinonChai permite fazer asserções mais diretas nos parâmetros de chamada do res.status e res.json (to.have.been.calledWith() ou to.have.been.called)
       - middlewares são testados separadamente seguindo a mesma lógica e acrescentando um mock sem valor de retorno para next().
   - em test/integration criar a pasta controllers
     - criar a pasta mocks e arquivos *.controller.test.js
-    - similar aos testes unitários porem o que é mockado são as chamadas a DB (connectiojn.execute() da camada model)
+    - similar aos testes unitários porem o que é mockado são as chamadas a DB (connection.execute() da camada model)
 ```js
 // src/utils/errorMap.js
 const errorMap = {
