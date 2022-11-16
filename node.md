@@ -443,27 +443,156 @@ const update = (data) => {
 ```
   
 #### controler
-  - É a camada intermediária, entre base de dados e requisições
-  - responsavel por realizar validações de regras de negócio
-  - desacoplamento busca reduzir custo de manutenção (tempo)
-  - em `src` criar pasta `services`
-    - um arquivo *.service.js para cada entidade
-    - um arquivo index.js que importa todos os services e os exporta juntos (barrel)
-    - criar pasta validations
-      - criar arquivo schemas.js aonde se declara as validações (joy)
-      - criar arquivo validationsInputValues.js aonde se inicializa as validações
-  - em `tests/unit` criar a psta `services`
-    - para fazer testes unitarios na camada services é preciso mockar a camada model
-    - criar a pasta mocks com arquivos de extensão `*.service.mocks.js`
-    - criar os arquivos de teste com extensão *.service.test.js
+  - É a camada responsavel por controlar o recebimento de requisições, fazer validações de dados (que não envolvem regras de negócio) e chamar os serviços necessários para responder a requisição ou retornar erro
+  - Existem dois tipos de erros:
+    - erros originados pelo cliente → occorrem quando as validações falham. Devem ser respondidos com informaçõessobre o erro.
+    - erros originados na api → devem ser respondidos com status 500 e mensagem genérica para não expor informações sobre a construção da api.
+  - em src criar a pasta utils
+    - criar o arquivo errorMap.js em que se mapeia a propriedade type dos objetos de erro a um status específico
+  - em scr criar a pasta routers
+    - criar um arquivo de middleware de rota no formato *.router.js para cada grupo de rotas similar
+    - criar um arquivo barrel index.js aonde se importa todos os middlewares de rota e os exporta em um router unico (ou exportar em um objeto unico)
+    - em app.js chamar a função use() para cada router criado, passando a rota base
+  - em src criar a pasta controllers
+    - Aqui ficaram as funções callback do segundo parametro das chamadas de rotas
+    - tal organização permite fazer testes unitários na camada controller sem a necessidade de inicializar o express.
+    - criar um arquivo *.controller.js para cada middleware de rota
+        - as funções desses arquivos se comportam da mesma forma que quando estavam na definição da rota. Podem receber os paramentros (err, req, res, next) e retornam uma resposta para requisição
+    - criar arquivo barrel index.js e importar todos controllers, exportando em um objeto único
+  - em src criar a pasta middlewares
+    - middlewares são usados nas chamadas de rotas para validação da existencia das informações necessárias na requisição para execução do serviço a ser chamado
+    - um arquivo para cada função de validação
+    - em caso de falha respo nder a requisição com o erro e em caso de sucesso chamar next()
+  
+  - em `tests/unit` criar as pastas controllers e middlewares
+    - na pasta controllers criar a pasta mocks e os arquivos *.controller.test.js
+      - na pasta mocks criar os arquivos *.controller.mock.js
+      - para testar uma função controller deve-se criar os objetos req e res a serem passados como parametro e mockar a chamada ao serviço realizada nela. Além de os retornos das funções de resposta res.status e res.message
+      - as verificações são feitas com base nas funções de resposta res.status e res.message, chcando a estrutura que foi passada em suas execuções
+      - uso do sinonChai permite fazer asserções mais diretas nos parâmetros de chamada do res.status e res.json (to.have.been.calledWith)
+      - middlewares são testados separadamente seguindo a mesma lógica e acrescentando um mock sem valor de retorno para next().
+  - em test/integration criar a pasta controllers
+    - criar a pasta mocks e arquivos *.controller.test.js
+    - similar aos testes unitários porem o que é mockado são as chamadas a DB (connectiojn.execute() da camada model)
 ```js
-// /*.service.js
+// src/utils/errorMap.js
+const errorMap = {
+  TRAVEL_NOT_FOUND: 404,
+  DRIVER_NOT_FOUND: 404,
+  INVALID_VALUE: 422,
+  TRAVEL_CONFLICT: 409,
+};
+
+const mapError = (type) => errorMap[type] || 500;
+
+module.exports = {
+  errorMap,
+  mapError,
+};
+
+// src/routers/bar.router.js
+const express = require('express');
+const { bar } = require('../controllers/foo.controller');
+
+const router = express.Router();
+
+router.get('/foo', bar);
+{ ... }
+module.exports = router;
   
-// /validations/schema.js
+// src/controllers/foo.controller.js
+const { fooService } = require('../services');
+const errorMap = require('../utils/errorMap');
+
+const bar = async (_req, res) => {
+  const { type, message } = await fooService.getAll();
+  if (type) return res.status(errorMap.mapError(type)).json(message);
+  res.status(200).json(message);
+};
+
+module.exports = {
+  bar,
+};
   
-// /validations/validationsInputValues.js
+// tests/unit/controllers/driver.controller.test.js
+const chai = require('chai');
+const sinon = require('sinon');
+const sinonChai = require('sinon-chai');
+
+const { expect } = chai;
+chai.use(sinonChai);
+
+const { driverService } = require('../../../src/services');
+const driverController = require('../../../src/controllers/driver.controller');
+
+describe('Teste de unidade do driverController', function () {
+  it('Buscando as viagens em aberto quando não tem nenhuma viagem cadastrada', async function () {
+    const res = {};
+    const req = {};
+
+    res.status = sinon.stub().returns(res);
+    
+    res.json = sinon.stub().returns();
+
+    sinon
+      .stub(driverService, 'getWaitingDriverTravels')
+      .resolves({ type: null, message: [] });
+
+    await driverController.openTravel(req, res);
+
+    expect(res.status).to.have.been.calledOnceWith(200);
+
+    expect(res.json).to.have.been.calledWith([]);
+		expect(res.json).to.have.been.called;
+
+  });
+});
   
-// /tests/unit/services/*.service.test.js
+// tests/integration/controllers/passenger.controller.test.js
+const chai = require('chai');
+const sinon = require('sinon');
+const chaiHttp = require('chai-http');
+const sinonChai = require('sinon-chai');
+
+const { expect } = chai;
+chai.use(sinonChai);
+chai.use(chaiHttp);
+
+const app = require('../../../src/app');
+
+const connection = require('../../../src/models/connection');
+
+const {
+  happyTravelDB,
+  happyPassengerDB,
+  happyTravelResponse,
+} = require('./mocks/passenger.controller.mock');
+
+describe('Teste de integração de passengers', function () {
+  it('Criação de uma nova viagem com sucesso', async function () {
+    sinon
+      .stub(connection, 'execute')
+      .onFirstCall()
+      .resolves([[happyPassengerDB]])
+      .onSecondCall()
+      .resolves([{ insertId: 42 }])
+      .onThirdCall()
+      .resolves([[happyTravelDB]]);
+
+    const response = await chai
+      .request(app)
+      .post('/passengers/1/request/travel')
+      .send({
+        startingAddress: 'Rua AAAA',
+        endingAddress: 'Rua BBB',
+      });
+
+    expect(response.status).to.be.equal(201);
+
+    expect(response.body).to.be.deep.equal(happyTravelResponse);
+  });
+  afterEach(sinon.restore);
+});
 ```
   
 ### testes com mocha
