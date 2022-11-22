@@ -160,7 +160,7 @@ router.get('/:id', async (req, res) => {
 ```
 - retorno em array
   - deve-se sempre desestruturar o retorno
-    - se o retorno for um objeto desestruturar em 2 arrays `const [[result]] = await peopleDB.findById(id);`
+    - se o retorno for um objeto desestruturar em 2 arrays `const [[result]] = await peopleDB.findById(id);` ou em um array e um objeto para tirar uma propriedade do objeto `const [{ affectedRows }] = await connection.execute(...)`
     - se o retorno for um array desestruturar em um array `const [result] = await peopleDB.insert(person);`
 
 ### definições
@@ -425,7 +425,7 @@ const update = (data) => {
     - um arquivo *.service.js para cada entidade
     - um arquivo index.js que importa todos os services e os exporta juntos (barrel)
     - criar pasta validations
-      - criar arquivo schemas.js aonde se declara as validações (joy)
+      - criar arquivo schemas.js aonde se declara as validações (joi)
       - criar arquivo validationsInputValues.js aonde se inicializa as validações
   - em `tests/unit` criar a psta `services`
     - para fazer testes unitarios na camada services é preciso mockar a camada model
@@ -435,11 +435,64 @@ const update = (data) => {
 ```js
 // /*.service.js
   
+	const updateProductById = async (id, name) => {
+  const { type, message } = validateNewProduct(name);
+  if (type) return { type, message };
+  const affectedRows = await productsModel.updateProductById(id, name);
+  if (affectedRows === 0) return { type: NOT_FOUND, message: 'Product not found' };
+  const product = await productsModel.getProductsById(id);
+  return { type: null, message: product };
+	};
+	
 // /validations/schema.js
   
+	const Joi = require('joi');
+
+	const productSchema = Joi.object({
+		name: Joi.string().min(5).required(),
+	});
+
+	const saleSchema = Joi.array().items({
+		productId: Joi.number().integer(),
+		quantity: Joi.number().integer().min(1).messages({
+			'number.min': '"quantity" must be greater than or equal to 1',
+		}),
+	});
+	
 // /validations/validationsInputValues.js
+	
+	const validateNewProduct = (name) => {
+  const { error } = productSchema.validate({ name });
+  if (error) return { type: INVALID_VALUE, message: error.message };
+  return { type: null, message: '' };
+	};
   
 // /tests/unit/services/*.service.test.js
+	
+	describe('testes unitários - rota /products - services', function () {
+		describe('endpoint PUT /products/:id - updateProductById()', function () {
+			afterEach(sinon.restore);
+
+			it('em caso de sucesso', async function () {
+				const product = { id: 1, name: 'abacaxi' };
+				sinon.stub(productsModel, 'updateProductById').resolves(1)
+				sinon.stub(productsModel, 'getProductsById').resolves(product);
+				sinon.stub(validateNewProduct, 'validateNewProduct').resolves({ type: null, message: '' });
+
+				const resolves = await productsService.updateProductById(1, 'abacaxi');
+
+				expect(resolves).to.be.deep.equal({ type: null, message: product });
+			});
+
+			it('em caso de falha - nome inválido', async function () {
+				sinon.stub(validateNewProduct, 'validateNewProduct').resolves({ type: null, message: "\"name\" length must be at least 5 characters long" });
+
+				const resolves = await productsService.updateProductById(1, 'a');
+
+				expect(resolves).to.be.deep.equal({ type: 'INVALID_VALUE', message: "\"name\" length must be at least 5 characters long" });
+			});
+		});
+	});
 ```
   
 #### controler
