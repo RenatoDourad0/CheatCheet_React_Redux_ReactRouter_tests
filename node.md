@@ -2,8 +2,8 @@
 ## express
 ### ambiente
   - `npm init -y` 
-  - `npm i express express-async-errors@3.1 cors@2.8 morgan mysql2@2.3 dotenv@16.0.1 joi@17.6`
-  - `npm i -D nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0 sinon-chai nyc@15.1` 
+  - `npm i express express-async-errors@3.1 cors@2.8 morgan mysql2@2.3 sequelize dotenv@16.0.1 joi@17.6`
+  - `npm i -D sequelize-cli nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0 sinon-chai nyc@15.1` 
     - versões especificas somente para trybe
   - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
     - eslint para trybe: 
@@ -36,7 +36,7 @@ MYSQL_QUEUE_LIMIT=0
   - `git init`
   - `touch .gitignore` - node_modules, .env
   - criar pastas src e tests
-    - em src a pasta middlewares, routes e db
+    - em src a pasta middlewares, routes e db (somente para mysql2)
       - em routes arquivos com rotas usando o middleware routes 
       - em middlewares arquivos com funções que auxiliam as rotas 
       - em db arquivo connection e arquivos com prepared statements (funções com chamadas a DB) para as rotas
@@ -54,9 +54,48 @@ MYSQL_QUEUE_LIMIT=0
 "test:coverage": "nyc --all --include src/models --include src/services --include src/controllers mocha tests/unit/**/*.js --exit"
 },
 ```
-  - `git commit -am 'definição ambiente'`
+- `git commit -am 'definição ambiente'`
+	
 ### inicializando
+- sequelize
+	- na pasta src `npx sequelizer-cli init`
+	- alterar /config/config.json para config.js
+	- alterar linha 9 do arquivo src/models/index.js para apontar para o arquivo config.js
+	- criar arquivo .sequelizerc na raiz da aplicação.
 ```js
+// /.env
+MYSQL_USER=root
+MYSQL_PASSWORD=senha_mysql
+MYSQL_DATABASE=orm_example
+MYSQL_HOST=localhost
+
+// src/config/config.js (sequelize)
+require('dotenv').config();
+
+const config = {
+  username: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  host: process.env.MYSQL_HOST,
+  dialect: 'mysql',
+};
+
+module.exports = {
+  development: config,
+  test: config,
+  production: config,
+};
+	
+// /.sequelizerc
+const path = require('path');
+
+module.exports = {
+  'config': path.resolve('src', 'config', 'config.js'),
+  'models-path': path.resolve('src', 'models'),
+  'seeders-path': path.resolve('src', 'seeders'),
+  'migrations-path': path.resolve('src', 'migrations'),
+};
+	
 // src/app.js
 const express = require('express');
 require('express-async-errors');
@@ -69,8 +108,8 @@ app.use(express.json());
 app.use(cors());
 // ...
 module.exports = app;
-
-// src/db/connection.js
+	
+// src/db/connection.js (mysql2)
 const mysql = require('mysql2/promise');
 const connection = mysql.createPool({
   host: process.env.MYSQL_HOST,
@@ -162,6 +201,29 @@ router.get('/:id', async (req, res) => {
   - deve-se sempre desestruturar o retorno
     - se o retorno for um objeto desestruturar em 2 arrays `const [[result]] = await peopleDB.findById(id);` ou em um array e um objeto para tirar uma propriedade do objeto `const [{ affectedRows }] = await connection.execute(...)`
     - se o retorno for um array desestruturar em um array `const [result] = await peopleDB.insert(person);`
+	
+### sequelize
+- um ORM (object relational map) - permite a comunicação com o DB...
+- model
+	- na pasta models criar arquivos no formato `<nome-entidade-no-singular>.model.js`
+	- usar a função define do sequelize
+	- caracterizar os nomes das propriedades e os tipos de dados a serem usados
+	- outra forma de se criar models é atravéz da cli `npx sequelize model:generate --name User.model --attributes fullName:string`
+```js
+// src/models/user.model.js
+
+const UserModel = (sequelize, DataTypes) => {
+const User = sequelize.define('User', {
+	fullName: DataTypes.STRING,
+	email: DataTypes.STRING,
+}, {
+	tableName: 'Users'
+});
+return User;
+};
+
+module.exports = UserModel;
+```
 
 ### definições
 - sintaxe
