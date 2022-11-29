@@ -3,7 +3,7 @@
 ### ambiente
   - `npm init -y` 
   - `npm i express express-async-errors@3.1 cors@2.8 morgan mysql2@2.3 sequelize dotenv@16.0.1 joi@17.6`
-  - `npm i -D sequelize-cli nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0 sinon-chai nyc@15.1` 
+  - `npm i -D sequelize-cli sequelize-test-helpers nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0 sinon-chai nyc@15.1` 
     - versões especificas somente para trybe
   - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
     - eslint para trybe: 
@@ -58,10 +58,10 @@ MYSQL_QUEUE_LIMIT=0
 	
 ### inicializando
 - sequelize
-	- na pasta src `npx sequelizer-cli init`
 	- alterar /config/config.json para config.js
 	- alterar linha 9 do arquivo src/models/index.js para apontar para o arquivo config.js
-	- criar arquivo .sequelizerc na raiz da aplicação.
+	- criar arquivo .sequelizerc na raiz da aplicação
+	- na pasta src `npx sequelize-cli init`
 ```js
 // /.env
 MYSQL_USER=root
@@ -208,7 +208,7 @@ router.get('/:id', async (req, res) => {
 	- na pasta models criar arquivos no formato `<nome-entidade-no-singular>.model.js`
 	- usar a função define do sequelize
 	- caracterizar os nomes das propriedades e os tipos de dados a serem usados
-	- outra forma de se criar models é atravéz da cli `npx sequelize model:generate --name User.model --attributes fullName:string`
+	- outra forma de se criar models é atravéz da cli `npx sequelize model:generate --name User.model --attributes fullName:string` que cria o model e a migration do mesmo
 ```js
 // src/models/user.model.js
 
@@ -217,14 +217,86 @@ const User = sequelize.define('User', {
 	fullName: DataTypes.STRING,
 	email: DataTypes.STRING,
 }, {
-	tableName: 'Users'
+	sequelize,
+//	modelName: 'user',
+//	tableName: 'users',
+	uderscored: true,
 });
 return User;
 };
 
 module.exports = UserModel;
 ```
+- migrations
+	- representa as alterações em estruturas do banco de dados
+	- a função up constroi o novo recurso e a função down desfaz a up
+	- o comando `npx sequelize migration:generate --name <nome>` cria o arquivo de migration
+	- o comando `npx sequelize db:migrate` executa as migrations
+	- o comando `npx sequelize db:migrate:undo` desfaz a ultima migration
+	- para reverter ATE uma migration especifica `npx sequelize-cli db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js`
+```js
+	'use strict';
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Users', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      fullName: {
+        type: Sequelize.STRING,
+        uderscores: true
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        uderscores: true
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        uderscores: true
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Users');
+  }
+};
+```
+- seeders
+	- um seeder é usado para, basicamente, alimentar o banco de dados com informações necessárias para o funcionamento mínimo da aplicação
+	- tambem possui as funções up e down
+	- comando para criar o arquivo `npx sequelize seed:generate --name <nome>`
+	- comando para executar as seeds `npx sequelize db:seed:all`
+	- comando para desfazer a ultima seed `npx sequelize-cli db:seed:undo` e para desfazer todas seeds `npx sequelize db:seed:undo:all`
+	- comando para desfazer seed especifica `npx sequelize-cli db:seed:undo --seed name-of-seed-as-in-data`
+```js
+'use strict';
+module.exports = {
+  up: async (queryInterface, Sequelize) => queryInterface.bulkInsert('Users',
+    [
+      {
+        fullName: 'Leonardo',
+        email: 'leo@test.com',
+        // usamos a função CURRENT_TIMESTAMP do SQL para salvar a data e hora atual nos campos `createdAt` e `updatedAt`
+        createdAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+        updatedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      {
+        fullName: 'JEduardo',
+        email: 'edu@test.com',
+        createdAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+        updatedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+    ], {}),
 
+  down: async (queryInterface) => queryInterface.bulkDelete('Users', null, {}),
+};
+```
 ### definições
 - sintaxe
 ```js
@@ -763,7 +835,32 @@ describe('Foo', function () {
 
 #### coverage com nyc
   - `"test:coverage": "nyc --all --include src/models --include src/services --include src/controllers mocha tests/unit/**/*.js --exit"` é o script do package.json para executart teste de cobertura
-  
+
+#### testes com sequelize-test-helpers
+  - [docs](https://www.npmjs.com/package/sequelize-test-helpers)
+```js
+const {
+  sequelize,
+  dataTypes,
+  checkModelName,
+  checkPropertyExists,
+} = require('sequelize-test-helpers');
+
+const UserModel = require('../../../src/models/user.model');
+
+describe('O model de User', () => {
+  const User = UserModel(sequelize, dataTypes);
+  const user = new User();
+
+  describe('possui o nome "User"', () => {
+    checkModelName(User)('User');
+  });
+
+  describe('possui as propriedades "fullName" e "email"', () => {
+    ['fullName', 'email'].forEach(checkPropertyExists(user));
+  });
+});
+```
   
 DUVIDAS 
   Como tratar erros das requisiçoes da camada model. (try/catch nosconnection.execute?)
