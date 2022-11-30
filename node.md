@@ -149,154 +149,6 @@ const { expect, use } = chai;
 use(chaiHttp);
 ```
 
-### SQL
-- sintaxe prepared statements
-    - arrow function que utiliza a função execute do objeto connection
-    - `connection.execute()` método ASSINCRONO que recebe uma string (utiliando craze para permitir quebra de linha) como primeiro argumento, um array como segundo e retorna uma promisse
-    - ? representa placeholders 
-    - a ordem em que as dados são passadas no array deve ser igual a ordem que as chaves foram passadas na string
-    - quando utilizada deve ser chamada com await
-    - prepared statements previne ateques de sql injection
-```js
-// src/db/peopleDB.js
-
-const connection = require('./connection');
-  
-const findById = async (id) => connection.execute('SELECT * FROM people WHERE id = ?', [id]);
-  
-const insert = async (person) => {
-  const [{ insertId }] = await connection.execute(
-    `INSERT INTO people 
-        (first_name, last_name, email, phone) VALUES (?, ?, ?, ?)`,
-      [person.firstName, person.lastName, person.email, person.phone],
-    );
-  const [[personWithId]] = await findById(insertId);
-  return personWithId;
-  }
-const findAll = async () => await connection.execute('SELECT * FROM people');
-
-module.exports = { insert, findAll, findById };
-  
-// src/routes/peopleRoutes.js
-
-const peopleDB = require('../db/peopleDB');
-// ...
-router.post('/', (req, res) => {
-  const person = req.body;
-  try {
-    const result = peopleDB.insert(person);
-// ...
-    }
-});
-  
-router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const [[result]] = await peopleDB.findById(id);
-// ...
-    }
-});
-```
-- retorno em array
-  - deve-se sempre desestruturar o retorno
-    - se o retorno for um objeto desestruturar em 2 arrays `const [[result]] = await peopleDB.findById(id);` ou em um array e um objeto para tirar uma propriedade do objeto `const [{ affectedRows }] = await connection.execute(...)`
-    - se o retorno for um array desestruturar em um array `const [result] = await peopleDB.insert(person);`
-	
-### sequelize
-- um ORM (object relational map) - permite a comunicação com o DB...
-- model
-	- na pasta models criar arquivos no formato `<nome-entidade-no-singular>.model.js`
-	- usar a função define do sequelize
-	- caracterizar os nomes das propriedades e os tipos de dados a serem usados
-	- outra forma de se criar models é atravéz da cli `npx sequelize model:generate --name User.model --attributes fullName:string` que cria o model e a migration do mesmo
-```js
-// src/models/user.model.js
-
-const UserModel = (sequelize, DataTypes) => {
-const User = sequelize.define('User', {
-	fullName: DataTypes.STRING,
-	email: DataTypes.STRING,
-}, {
-	sequelize,
-//	modelName: 'user',
-//	tableName: 'users',
-	uderscored: true,
-});
-return User;
-};
-
-module.exports = UserModel;
-```
-- migrations
-	- representa as alterações em estruturas do banco de dados
-	- a função up constroi o novo recurso e a função down desfaz a up
-	- o comando `npx sequelize migration:generate --name <nome>` cria o arquivo de migration
-	- o comando `npx sequelize db:migrate` executa as migrations
-	- o comando `npx sequelize db:migrate:undo` desfaz a ultima migration
-	- para reverter ATE uma migration especifica `npx sequelize-cli db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js`
-```js
-	'use strict';
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Users', {
-      id: {
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
-        type: Sequelize.INTEGER
-      },
-      fullName: {
-        type: Sequelize.STRING,
-        uderscores: true
-      },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        uderscores: true
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        uderscores: true
-      }
-    });
-  },
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Users');
-  }
-};
-```
-- seeders
-	- um seeder é usado para, basicamente, alimentar o banco de dados com informações necessárias para o funcionamento mínimo da aplicação
-	- tambem possui as funções up e down
-	- comando para criar o arquivo `npx sequelize seed:generate --name <nome>`
-	- comando para executar as seeds `npx sequelize db:seed:all`
-	- comando para desfazer a ultima seed `npx sequelize-cli db:seed:undo` e para desfazer todas seeds `npx sequelize db:seed:undo:all`
-	- comando para desfazer seed especifica `npx sequelize-cli db:seed:undo --seed name-of-seed-as-in-data`
-```js
-'use strict';
-module.exports = {
-  up: async (queryInterface, Sequelize) => queryInterface.bulkInsert('Users',
-    [
-      {
-        fullName: 'Leonardo',
-        email: 'leo@test.com',
-        // usamos a função CURRENT_TIMESTAMP do SQL para salvar a data e hora atual nos campos `createdAt` e `updatedAt`
-        createdAt: Sequelize.literal('CURRENT_TIMESTAMP'),
-        updatedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
-      },
-      {
-        fullName: 'JEduardo',
-        email: 'edu@test.com',
-        createdAt: Sequelize.literal('CURRENT_TIMESTAMP'),
-        updatedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
-      },
-    ], {}),
-
-  down: async (queryInterface) => queryInterface.bulkDelete('Users', null, {}),
-};
-```
 ### definições
 - sintaxe
 ```js
@@ -461,6 +313,218 @@ router.use(router2);
 module.exports = router;
 ```
 
+### MYSQL2
+- sintaxe prepared statements
+    - arrow function que utiliza a função execute do objeto connection
+    - `connection.execute()` método ASSINCRONO que recebe uma string (utiliando craze para permitir quebra de linha) como primeiro argumento, um array como segundo e retorna uma promisse
+    - ? representa placeholders 
+    - a ordem em que as dados são passadas no array deve ser igual a ordem que as chaves foram passadas na string
+    - quando utilizada deve ser chamada com await
+    - prepared statements previne ateques de sql injection
+```js
+// src/db/peopleDB.js
+
+const connection = require('./connection');
+  
+const findById = async (id) => connection.execute('SELECT * FROM people WHERE id = ?', [id]);
+  
+const insert = async (person) => {
+  const [{ insertId }] = await connection.execute(
+    `INSERT INTO people 
+        (first_name, last_name, email, phone) VALUES (?, ?, ?, ?)`,
+      [person.firstName, person.lastName, person.email, person.phone],
+    );
+  const [[personWithId]] = await findById(insertId);
+  return personWithId;
+  }
+const findAll = async () => await connection.execute('SELECT * FROM people');
+
+module.exports = { insert, findAll, findById };
+  
+// src/routes/peopleRoutes.js
+
+const peopleDB = require('../db/peopleDB');
+// ...
+router.post('/', (req, res) => {
+  const person = req.body;
+  try {
+    const result = peopleDB.insert(person);
+// ...
+    }
+});
+  
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [[result]] = await peopleDB.findById(id);
+// ...
+    }
+});
+```
+- retorno em array
+  - deve-se sempre desestruturar o retorno
+    - se o retorno for um objeto desestruturar em 2 arrays `const [[result]] = await peopleDB.findById(id);` ou em um array e um objeto para tirar uma propriedade do objeto `const [{ affectedRows }] = await connection.execute(...)`
+    - se o retorno for um array desestruturar em um array `const [result] = await peopleDB.insert(person);`
+	
+### sequelize
+- um ORM (object relational map) - permite a comunicação com o DB...
+- model
+	- na pasta models criar arquivos no formato `<nome-entidade-no-singular>.model.js`
+	- usar a função define do sequelize
+	- caracterizar os nomes das propriedades e os tipos de dados a serem usados
+	- outra forma de se criar models é atravéz da cli `npx sequelize model:generate --name User.model --attributes fullName:string,email:string`
+```js
+// src/models/user.model.js
+
+const UserModel = (sequelize, DataTypes) => {
+const User = sequelize.define('User', {
+	fullName: DataTypes.STRING,
+	email: DataTypes.STRING,
+}, {
+	sequelize,
+//	modelName: 'user',
+//	tableName: 'users',
+	uderscored: true,
+});
+return User;
+};
+
+module.exports = UserModel;
+```
+- migrations
+	- representa as alterações em estruturas do banco de dados
+	- a função up constroi o novo recurso e a função down desfaz a up
+	- o comando `npx sequelize migration:generate --name <nome>` cria o arquivo de migration
+	- o comando `npx sequelize db:migrate` executa as migrations
+	- o comando `npx sequelize db:migrate:undo` desfaz a ultima migration
+	- para reverter ATE uma migration especifica `npx sequelize-cli db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js`
+```js
+	'use strict';
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Users', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      fullName: {
+        type: Sequelize.STRING,
+        uderscores: true
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        uderscores: true
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        uderscores: true
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Users');
+  }
+};
+```
+- seeders
+	- um seeder é usado para, basicamente, alimentar o banco de dados com informações necessárias para o funcionamento mínimo da aplicação
+	- tambem possui as funções up e down
+	- comando para criar o arquivo `npx sequelize seed:generate --name <nome>`
+	- comando para executar as seeds `npx sequelize db:seed:all`
+	- comando para desfazer a ultima seed `npx sequelize-cli db:seed:undo` e para desfazer todas seeds `npx sequelize db:seed:undo:all`
+	- comando para desfazer seed especifica `npx sequelize-cli db:seed:undo --seed name-of-seed-as-in-data`
+```js
+'use strict';
+module.exports = {
+  up: async (queryInterface, Sequelize) => queryInterface.bulkInsert('Users',
+    [
+      {
+        fullName: 'Leonardo',
+        email: 'leo@test.com',
+        // usamos a função CURRENT_TIMESTAMP do SQL para salvar a data e hora atual nos campos `createdAt` e `updatedAt`
+        createdAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+        updatedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+      {
+        fullName: 'JEduardo',
+        email: 'edu@test.com',
+        createdAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+        updatedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
+    ], {}),
+
+  down: async (queryInterface) => queryInterface.bulkDelete('Users', null, {}),
+};
+```
+- operações
+	- [docs](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/)
+	- Os models são os responsaveis por realizar operações na db. São chamados nos services, deve-se importar o arquivo index da pasta models e desestruturar pelo nome em seu respectivo service
+	- funções assíncronas nativas do sequelize como `<model-name>. findAll(), findByPk(id), findOne({ where: { id, email } }), create({ fullName, email }), update({ fullName, email }, { where: { id } }), destroy({ where: { id } })`.
+	- Os models são os responsaveis por realizar operações na db. São chamados nos services, deve-se importar o arquivo index da pasta models e desestruturar pelo nome em seu respectivo service chamando as funções assíncronas nativas do sequelize como `<model-name>. findAll(), findByPk(id), findOne({ where: { id, email } }), create({ fullName, email }), update({ fullName, email }, { where: { id } }), destroy({ where: { id } })`.
+```js
+// src/services/user.service.js
+
+const { User } = require('../models/');
+
+const getAll = async () => {
+   const users = await User.findAll();
+
+   return users;
+};
+
+// Este endpoint usa o método findByPk do Sequelize para buscar um usuário pelo id.
+const getById = async (id) => {
+  const user = await User.findByPk(id);
+
+  return user;
+};
+
+const getByIdAndEmail = async (id, email) => {
+  const user = await User.findOne({ where: { id, email } });
+
+  return user;
+};
+
+const createUser = async (fullName, email) => {
+  const newUser = await User.create({ fullName, email });
+
+  return newUser;
+};
+
+const updateUser = async (id, fullName, email) => {
+  const [updatedUser] = await User.update(
+    { fullName, email },
+    { where: { id } },
+  );
+
+  console.log(updatedUser); // confira o que é retornado quando o user com o id é ou não encontrado;  
+  return updatedUser;
+};
+
+const deleteUser = async (id) => {
+  const user = await User.destroy(
+    { where: { id } },
+  );
+
+  console.log(user); // confira o que é retornado quando o user com o id é ou não encontrado;
+  return user;
+};
+
+module.exports = {
+  getAll,
+  getById,
+  getByIdAndEmail,
+  createUser,
+  updateUser,
+  deleteUser,
+};
+```
+
 ### leitura e escrita de arquivos com fs
   -  terceiro parâmentro flag opcional
       - `w` para escrita
@@ -505,16 +569,18 @@ async function readData() {
 #### model
   - É a camada mais próxima da base de dados
   - responsavel por realizar operaçoes com a DB
-  - em `src` criar pasta `models`
-    - um arquivo *.model.js para cada entidade (tabela) da DB
-    - um arquivo index.js que importa todos os models e a connection e os exporta juntos (barrel)
-  - em `tests/unit` criar a psta `models`
-    - para fazer testes unitarios na camada model é preciso mockar a connection
-      - mockar retornos das chamadas ao connection com stub do sinon
-    - criar a pasta mocks com arquivos de extensão `*.model.mocks.js`
-    - criar os arquivos de teste com extensão *.model.test.js
-  - padrões comuns
-    - para inserts e updates a operação na DB retorna as chaves `insertId` e `affectedRows` respectivamente no formato [{}]. Já select retorna um array com os resultados no formato [[ ]]
+	- quando utilizando sequelize, seus models são a camada model da arquitetura 
+	- mysql2:
+		- em `src` criar pasta `models`
+			- um arquivo *.model.js para cada entidade (tabela) da DB
+			- um arquivo index.js que importa todos os models e a connection e os exporta juntos (barrel)
+		- em `tests/unit` criar a psta `models`
+			- para fazer testes unitarios na camada model é preciso mockar a connection
+				- mockar retornos das chamadas ao connection com stub do sinon
+			- criar a pasta mocks com arquivos de extensão `*.model.mocks.js`
+			- criar os arquivos de teste com extensão *.model.test.js
+		- padrões comuns
+			- para inserts e updates a operação na DB retorna as chaves `insertId` e `affectedRows` respectivamente no formato [{}]. Já select retorna um array com os resultados no formato [[ ]]
 ```js
 // create
 const insert = async (travel) => {
@@ -568,7 +634,18 @@ const update = (data) => {
     - criar os arquivos de teste com extensão *.service.test.js
 ```js
 // /*.service.js
-  
+	
+// com sequelize
+	const { User } = require('../models/');
+	const updateUser = async (id, fullName, email) => {
+		const [updatedUser] = await User.update(
+			{ fullName, email },
+			{ where: { id } },
+		);
+		return updatedUser;
+	};
+	
+// sem sequelize
 	const updateProductById = async (id, name) => {
   const { type, message } = validateNewProduct(name);
   if (type) return { type, message };
