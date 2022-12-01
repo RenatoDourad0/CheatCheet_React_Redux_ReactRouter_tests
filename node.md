@@ -27,6 +27,7 @@ MYSQL_PORT=<prota> // 3306
 MYSQL_USER=<nome-usuario>
 MYSQL_PASSWORD=<senha-usuario>
 MYSQL_DATABASE_NAME=<nome-banco-de-dados>
+// somente mysql2
 MYSQL_WAIT_FOR_CONNECTIONS=true
 MYSQL_CONNECTION_LIMIT=10
 MYSQL_QUEUE_LIMIT=0
@@ -36,10 +37,10 @@ MYSQL_QUEUE_LIMIT=0
   - `git init`
   - `touch .gitignore` - node_modules, .env
   - criar pastas src e tests
-    - em src a pasta middlewares, routes e db (somente para mysql2)
+    - em src a pasta middlewares, routes e db, essa ultima somente para mysql2
       - em routes arquivos com rotas usando o middleware routes 
       - em middlewares arquivos com funções que auxiliam as rotas 
-      - em db arquivo connection e arquivos com prepared statements (funções com chamadas a DB) para as rotas
+      - (somente para mysql2) em db arquivo connection e arquivos com prepared statements (funções com chamadas a DB) para as rotas
     - em tests as pastas unit e integration
       - arquivos <nome>.test.js 
   - adicionar ao package.json
@@ -54,21 +55,15 @@ MYSQL_QUEUE_LIMIT=0
 "test:coverage": "nyc --all --include src/models --include src/services --include src/controllers mocha tests/unit/**/*.js --exit"
 },
 ```
-- `git commit -am 'definição ambiente'`
-	
-### inicializando
-- sequelize
+- em `/src` `npx sequelize-cli init` 
+	- diretórios config, migrations, models e seeders serão gerados automaticamente
 	- alterar /config/config.json para config.js
 	- alterar linha 9 do arquivo src/models/index.js para apontar para o arquivo config.js
 	- criar arquivo .sequelizerc na raiz da aplicação
-	- na pasta src `npx sequelize-cli init`
+- `git commit -am 'definição ambiente'`
+	
+### inicializando
 ```js
-// /.env
-MYSQL_USER=root
-MYSQL_PASSWORD=senha_mysql
-MYSQL_DATABASE=orm_example
-MYSQL_HOST=localhost
-
 // src/config/config.js (sequelize)
 require('dotenv').config();
 
@@ -109,20 +104,6 @@ app.use(cors());
 // ...
 module.exports = app;
 	
-// src/db/connection.js (mysql2)
-const mysql = require('mysql2/promise');
-const connection = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  port: process.env.MYSQL_PORT,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE_NAME,
-  waitForConnections: process.env.MYSQL_WAIT_FOR_CONNECTIONS,
-  connectionLimit: process.env.MYSQL_CONNECTION_LIMIT,
-  queueLimit: process.env.MYSQL_QUEUE_LIMIT,
-});
-module.exports = connection;
-  
 // src/server.js
 const app = require('./app');
 const connection = require('./db/connection');
@@ -137,6 +118,20 @@ app.listen(port, async () => {
     console.log('MySQL connection OK');
   }
 });
+	
+// src/db/connection.js (mysql2)
+const mysql = require('mysql2/promise');
+const connection = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  port: process.env.MYSQL_PORT,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE_NAME,
+  waitForConnections: process.env.MYSQL_WAIT_FOR_CONNECTIONS,
+  connectionLimit: process.env.MYSQL_CONNECTION_LIMIT,
+  queueLimit: process.env.MYSQL_QUEUE_LIMIT,
+});
+module.exports = connection;
 
 // tests/integration/foo.test.js
 const app = require('../../src/app')
@@ -233,12 +228,12 @@ app.use(express.json());
 function meuMiddleware(req, res, next) {
 // ...
 next();
-}
+};
 app.get('<rota>', meuMiddleware, (req, res) => {
 // ...
 });
 ```
-  
+
   - middleware de erro
     - sempre devem vir depois de rotas e outros middlewares
     - só recebem requisições se algum middleware lançar um erro ou chamar next(err)
@@ -367,7 +362,9 @@ router.get('/:id', async (req, res) => {
     - se o retorno for um array desestruturar em um array `const [result] = await peopleDB.insert(person);`
 	
 ### sequelize
-- um ORM (object relational map) - permite a comunicação com o DB...
+- um ORM (object relational map) - permite um mapeamento estrutural entre as entidades do banco de dados e os objetos que as representam no código
+- gera um código mais consiso, de mais fácil manutenção
+- o sequelize utiliza os métodos de mapeamento `data mapper` (a classe que representa os registros NÃO conhece nada do banco. Ou seja existe uma interface que liga a estrutura do banco de dados com a aplicação sem que estes se comuniquem diretamente) ou o `active record` (a classe que representa os registros conhece os recursos necessários para realizar transaçoes no banco - a DB e a aplicação estão mais entrelasadas)
 - model
 	- na pasta models criar arquivos no formato `<nome-entidade-no-singular>.model.js`
 	- usar a função define do sequelize
@@ -464,8 +461,8 @@ module.exports = {
 - operações
 	- [docs](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/)
 	- Os models são os responsaveis por realizar operações na db. São chamados nos services, deve-se importar o arquivo index da pasta models e desestruturar pelo nome em seu respectivo service
-	- funções assíncronas nativas do sequelize como `<model-name>. findAll(), findByPk(id), findOne({ where: { id, email } }), create({ fullName, email }), update({ fullName, email }, { where: { id } }), destroy({ where: { id } })`.
-	- Os models são os responsaveis por realizar operações na db. São chamados nos services, deve-se importar o arquivo index da pasta models e desestruturar pelo nome em seu respectivo service chamando as funções assíncronas nativas do sequelize como `<model-name>. findAll(), findByPk(id), findOne({ where: { id, email } }), create({ fullName, email }), update({ fullName, email }, { where: { id } }), destroy({ where: { id } })`.
+	- funções assíncronas nativas do sequelize como `<model-name>. findAll(), findByPk(id), findOne({ where: { id, email } }), findAll({ where: { id, email }, order: [ ['name', 'ASC'] ] }), create({ fullName, email }), update({ fullName, email }, { where: { id } }), destroy({ where: { id } })`
+	- para ordenação usar a chave order do objeto de configuração. Recebe um array com outros arrays que representam a ordem de prioridade na ordenação. Na primeira posição a coluna a ser usada e na segunda a forma de ordenaçÃo (ASC, DESC)
 ```js
 // src/services/user.service.js
 
@@ -488,6 +485,11 @@ const getByIdAndEmail = async (id, email) => {
   const user = await User.findOne({ where: { id, email } });
 
   return user;
+};
+	
+const getByAuthor = async (author) => {
+  const books = await Book.findAll({ where: { author }, order: [ ['title', 'ASC'] ] });
+  return books;
 };
 
 const createUser = async (fullName, email) => {
@@ -863,6 +865,7 @@ describe('Teste de integração de passengers', function () {
   - recomenda-se não usar arrow function, e sim declarar atraves da palavra function
   - funções `beforeEach() e afterEach()` para setup e teardown
   - AAA (triple A) - técnica para escrita de testes - arrange / act / assert
+	- chai auxilia nas chamadas para testes de integração e nas acerções
 ```js
 describe('Foo', function () {
   beforeEach();
@@ -915,7 +918,35 @@ describe('Foo', function () {
 
 #### testes com sequelize-test-helpers
   - [docs](https://www.npmjs.com/package/sequelize-test-helpers)
+	- quando o objetivo é fazer um teste unitario do service (mokar o model) ou fazer teste do model na mão, deve-se importar o model desestruturando a referencia ao models/index.js. Quando se deseja utilizar o model com sequelize-test-helpers deve-se importar o arquivo do model em sí
 ```js
+// teste na mão
+const { expect } = require('chai');
+const { Book } = require('../../models');
+
+describe('O model de Book', function () {
+  it('possui a propriedade "title"', function () {
+    const book = new Book();
+    expect(book).to.have.property('title');
+  });
+
+  it('possui a propriedade "author"', function () {
+    const book = new Book();
+    expect(book).to.have.property('author');
+  });
+
+  it('possui a propriedade "pageQuantity"', function () {
+    const book = new Book();
+    expect(book).to.have.property('pageQuantity');
+  });
+
+  it('possui a propriedade "publisher"', function () {
+    const book = new Book();
+    expect(book).to.have.property('publisher');
+  });
+});
+
+// teste com sequelize-test-helpers
 const {
   sequelize,
   dataTypes,
