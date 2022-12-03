@@ -365,33 +365,10 @@ router.get('/:id', async (req, res) => {
 - um ORM (object relational map) - permite um mapeamento estrutural entre as entidades do banco de dados e os objetos que as representam no código
 - gera um código mais consiso, de mais fácil manutenção
 - o sequelize utiliza os métodos de mapeamento `data mapper` (a classe que representa os registros NÃO conhece nada do banco. Ou seja existe uma interface que liga a estrutura do banco de dados com a aplicação sem que estes se comuniquem diretamente) ou o `active record` (a classe que representa os registros conhece os recursos necessários para realizar transaçoes no banco - a DB e a aplicação estão mais entrelasadas)
-- model
-	- na pasta models criar arquivos no formato `<nome-entidade-no-singular>.model.js`
-	- usar a função define do sequelize
-	- caracterizar os nomes das propriedades e os tipos de dados a serem usados
-	- outra forma de se criar models é atravéz da cli `npx sequelize model:generate --name User.model --attributes fullName:string,email:string`
-```js
-// src/models/user.model.js
-
-const UserModel = (sequelize, DataTypes) => {
-const User = sequelize.define('User', {
-	fullName: DataTypes.STRING,
-	email: DataTypes.STRING,
-}, {
-	sequelize,
-//	modelName: 'user',
-//	tableName: 'users',
-	uderscored: true,
-});
-return User;
-};
-
-module.exports = UserModel;
-```
 - migrations
-	- representa as alterações em estruturas do banco de dados
+	- representa as alterações em estruturas de tabelas do banco de dados. Basicamente um controle de versão
 	- a função up constroi o novo recurso e a função down desfaz a up
-	- o comando `npx sequelize migration:generate --name <nome>` cria o arquivo de migration
+	- o comando `npx sequelize migration:generate --name <nome>` cria o arquivo de migration, aonde o nome deve ser igual o do model porem com inicial minúscula e no plural
 	- o comando `npx sequelize db:migrate` executa as migrations
 	- o comando `npx sequelize db:migrate:undo` desfaz a ultima migration
 	- para reverter ATE uma migration especifica `npx sequelize-cli db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js`
@@ -409,17 +386,15 @@ module.exports = {
       },
       fullName: {
         type: Sequelize.STRING,
-        uderscores: true
+				field: 'full_name',
       },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        uderscores: true
       },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        uderscores: true
       }
     });
   },
@@ -427,6 +402,29 @@ module.exports = {
     await queryInterface.dropTable('Users');
   }
 };
+```
+- model
+	- na pasta models criar arquivos no formato `<nome>.model.js` aonde o nome deve ser no singular e com inicial maiúscula
+	- usar a função define do sequelize
+	- caracterizar os nomes das propriedades e os tipos de dados a serem usados
+	- outra forma de se criar models é atravéz da cli `npx sequelize model:generate --name <nome> --attributes fullName:string,email:string`
+```js
+// src/models/user.model.js
+
+const UserModel = (sequelize, DataTypes) => {
+const User = sequelize.define('User', {
+	fullName: DataTypes.STRING,
+	email: DataTypes.STRING,
+	}, {
+	sequelize,
+	//	modelName: 'user',
+	//	tableName: 'users',
+	uderscored: true,
+	});
+	return User;
+};
+
+module.exports = UserModel;
 ```
 - seeders
 	- um seeder é usado para, basicamente, alimentar o banco de dados com informações necessárias para o funcionamento mínimo da aplicação
@@ -526,7 +524,115 @@ module.exports = {
   deleteUser,
 };
 ```
+- relacionamentos
+	- 1:1
+		- migration
+			- adicionar as propriedades references, onUpdate e onDelete a chaves extrangeiras quando construindo a migration
+				- onUpdate e onDelete podem ter os valores
+					- cascade: ao se alterar ou excluir uma linha em uma tabela extrangeira, a tabela que recebe a chave extrangeira também será atualizada
+					- outro:
+				- references é um objeto com as propriedades model e key. Model referencia o nome da tabela da chave extrangeira e key referencia o nome da coluna na tabela da chave extrangeira
+		- model
+			- utilizar a função associate do model tanto do lado que vai receber a chave extrangeira quanto do lado que vai fornecer os dados. Ela recebe como parametro os models, disponibilizando para as funções de associação
+			- O lado que vai receber informação usa a função hasOne ou hasMany do model e o lado que vai fornecer usa a função belongsTo ou bolongsToMany
+			- funções de associação `hasOne bolongsTo hasMany bolongsToMany`
+			- as funções de associação recebem dois argumentos, o primeiro é o model da chave extrangeira e o segundo um objeto com as chaves foreingKey e as. Aonde foreignKey representa o nome da chave no modelo extrangeiro e as um apelido para aquela associação.
+		- requisições
+			- A grande diferença quando vamos fazer uma requisição que necessite da utilização de uma association com o Sequelize, é o campo include
+			- o campo `include` é um objeto com as propriedades `model` e `as`, aonde model é o model da chave extrangeira e as deve ser igual a que declaramos no momento da criação da associação no respectivo model.
+```js
+// src/migrations/[timestamp]-create-addresses.js
 
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    return queryInterface.createTable('addresses', {
+     { ... }
+      employeeId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        // Configuram o que deve acontecer ao atualizar ou excluir um funcionário
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+        field: 'employee_id',
+        // Informa que o campo é uma Foreign Key (Chave estrangeira)
+        references: {
+          // Informa a tabela da referência da associação
+          model: 'employees',
+          // Informa a coluna da referência que é a chave correspondente
+          key: 'id',
+        },
+      },
+    });
+  },
+
+  down: async (queryInterface, _Sequelize) => {
+    return queryInterface.dropTable('addresses');
+  },
+};
+	
+// src/models/employee.model.js
+
+module.exports = (sequelize, DataTypes) => {
+	const Employee = sequelize.define('Employee', {
+			id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+			firstName: DataTypes.STRING,
+			lastName: DataTypes.STRING,
+			age: DataTypes.INTEGER,
+		},
+		{
+			timestamps: false, // remove a obrigatoriedade de utilizar os campos `createdAt` e `updatedAt`
+			tableName: 'employees',
+			underscored: true,
+	});
+
+	Employee.associate = (models) => {
+		Employee.hasOne(models.Address,
+			{ foreignKey: 'employeeId', as: 'addresses' });
+		};
+
+	return Employee;
+};
+	
+// src/models/address.model.js
+
+module.exports = (sequelize, DataTypes) => {
+  const Address = sequelize.define('Address', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    city: DataTypes.STRING,
+    street: DataTypes.STRING,
+    number: DataTypes.INTEGER,
+    employeeId: { type: DataTypes.INTEGER, foreignKey: true },
+    // A declaração da Foreign Key é opcional no model
+  },
+  {
+    timestamps: false,
+    tableName: 'addresses',
+    underscored: true,
+  });
+
+  Address.associate = (models) => {
+    Address.belongsTo(models.Employee,
+      { foreignKey: 'employeeId', as: 'employees' });
+  };
+
+  return Address;
+};
+	
+// src/services/employee.service.js
+
+const { Address, Employee } = require('../models/');
+
+const getAll = async () => {
+  const users = await Employee.findAll({
+    include: { model: Address, as: 'addresses' },
+  });
+
+  return users;
+};
+
+module.exports = { getAll };
+```
+	
 ### leitura e escrita de arquivos com fs
   -  terceiro parâmentro flag opcional
       - `w` para escrita
