@@ -368,10 +368,10 @@ router.get('/:id', async (req, res) => {
 - migrations
 	- representa as alterações em estruturas de tabelas do banco de dados. Basicamente um controle de versão
 	- a função up constroi o novo recurso e a função down desfaz a up
-	- o comando `npx sequelize migration:generate --name <nome>` cria o arquivo de migration, aonde o nome deve ser igual o do model porem com inicial minúscula e no plural
+	- o comando `npx sequelize migration:generate --name <nome>` cria o arquivo de migration, aonde o nome deve ser igual o do model porém no plural
 	- o comando `npx sequelize db:migrate` executa as migrations
 	- o comando `npx sequelize db:migrate:undo` desfaz a ultima migration
-	- para reverter ATE uma migration especifica `npx sequelize-cli db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js`
+	- para reverter ATÉ uma migration específica `npx sequelize-cli db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js`
 ```js
 	'use strict';
 /** @type {import('sequelize-cli').Migration} */
@@ -386,15 +386,17 @@ module.exports = {
       },
       fullName: {
         type: Sequelize.STRING,
-				field: 'full_name',
+	field: 'full_name', // o nome do campo na DB
       },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
+	deafult: Sequelize.NOW(),
       },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
+	deafult: Sequelize.NOW(),
       }
     });
   },
@@ -407,19 +409,25 @@ module.exports = {
 	- na pasta models criar arquivos no formato `<nome>.model.js` aonde o nome deve ser no singular e com inicial maiúscula
 	- usar a função define do sequelize
 	- caracterizar os nomes das propriedades e os tipos de dados a serem usados
-	- outra forma de se criar models é atravéz da cli `npx sequelize model:generate --name <nome> --attributes fullName:string,email:string`
+	- outra forma de se criar models é atravéz da cli `npx sequelize model:generate --name <nome> --attributes fullName:string,email:string` que gera um arquivo model e um arquivo migration.
 ```js
 // src/models/user.model.js
 
 const UserModel = (sequelize, DataTypes) => {
 const User = sequelize.define('User', {
+	id: {
+	  type: DataTypes.INTEGER,
+	  primaryKey: true,
+	  autoIncrement: true,
+	},
 	fullName: DataTypes.STRING,
 	email: DataTypes.STRING,
 	}, {
 	sequelize,
-	//	modelName: 'user',
-	//	tableName: 'users',
-	uderscored: true,
+	modelName: 'User',
+	tableName: 'Users',
+	uderscored: true, // transformação automática dos camel case do model para kebab case nos campos com field declarado na migration
+	timestamps: true, // permite desativar as propriedades default created_at e updated_at (devem ser omitidas da migration em caso de false)
 	});
 	return User;
 };
@@ -458,9 +466,10 @@ module.exports = {
 ```
 - operações
 	- [docs](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/)
-	- Os models são os responsaveis por realizar operações na db. São chamados nos services, deve-se importar o arquivo index da pasta models e desestruturar pelo nome em seu respectivo service
+	- Os models são os responsaveis por realizar operações na db. São chamados nos services, deve-se importar o arquivo index da pasta models e desestruturar pelo nome dos models
 	- funções assíncronas nativas do sequelize como `<model-name>. findAll(), findByPk(id), findOne({ where: { id, email } }), findAll({ where: { id, email }, order: [ ['name', 'ASC'] ] }), create({ fullName, email }), update({ fullName, email }, { where: { id } }), destroy({ where: { id } })`
 	- para ordenação usar a chave order do objeto de configuração. Recebe um array com outros arrays que representam a ordem de prioridade na ordenação. Na primeira posição a coluna a ser usada e na segunda a forma de ordenaçÃo (ASC, DESC)
+	- para remover proriedades usar a chave attributes, um objetocom a propriedade excludes que por sua vez é um array
 ```js
 // src/services/user.service.js
 
@@ -468,20 +477,16 @@ const { User } = require('../models/');
 
 const getAll = async () => {
    const users = await User.findAll();
-
    return users;
 };
 
-// Este endpoint usa o método findByPk do Sequelize para buscar um usuário pelo id.
 const getById = async (id) => {
   const user = await User.findByPk(id);
-
   return user;
 };
 
 const getByIdAndEmail = async (id, email) => {
-  const user = await User.findOne({ where: { id, email } });
-
+  const user = await User.findOne({ where: { id, email }, attributes: { exclude: [ 'email'] } });
   return user;
 };
 	
@@ -492,26 +497,16 @@ const getByAuthor = async (author) => {
 
 const createUser = async (fullName, email) => {
   const newUser = await User.create({ fullName, email });
-
   return newUser;
 };
 
 const updateUser = async (id, fullName, email) => {
-  const [updatedUser] = await User.update(
-    { fullName, email },
-    { where: { id } },
-  );
-
-  console.log(updatedUser); // confira o que é retornado quando o user com o id é ou não encontrado;  
-  return updatedUser;
+  const [affectedRows] = await User.update({ fullName, email }, { where: { id } }); 
+  return affectedRows;
 };
 
 const deleteUser = async (id) => {
-  const user = await User.destroy(
-    { where: { id } },
-  );
-
-  console.log(user); // confira o que é retornado quando o user com o id é ou não encontrado;
+  const user = await User.destroy({ where: { id } });
   return user;
 };
 
@@ -525,40 +520,45 @@ module.exports = {
 };
 ```
 - relacionamentos
-	- 1:1
+	- 1:1 / 1:N
 		- migration
-			- adicionar as propriedades references, onUpdate e onDelete a chaves extrangeiras quando construindo a migration
+			- além das proprieddes descritas acima adicionar as propriedades references, onUpdate e onDelete a chaves extrangeiras quando construindo a migration
 				- onUpdate e onDelete podem ter os valores
 					- cascade: ao se alterar ou excluir uma linha em uma tabela extrangeira, a tabela que recebe a chave extrangeira também será atualizada
 					- outro:
-				- references é um objeto com as propriedades model e key. Model referencia o nome da tabela da chave extrangeira e key referencia o nome da coluna na tabela da chave extrangeira
+				- references é um objeto com as propriedades model e key. Model referencia o nome da tabela da chave extrangeira e key referencia o nome da coluna da chave extrangeira
 		- model
 			- utilizar a função associate do model tanto do lado que vai receber a chave extrangeira quanto do lado que vai fornecer os dados. Ela recebe como parametro os models, disponibilizando para as funções de associação
 			- O lado que vai receber informação usa a função hasOne ou hasMany do model e o lado que vai fornecer usa a função belongsTo ou bolongsToMany
 			- funções de associação `hasOne bolongsTo hasMany bolongsToMany`
-			- as funções de associação recebem dois argumentos, o primeiro é o model da chave extrangeira e o segundo um objeto com as chaves foreingKey e as. Aonde foreignKey representa o nome da chave no modelo extrangeiro e as um apelido para aquela associação.
+			- as funções de associação recebem dois argumentos, o primeiro é o model da chave extrangeira e o segundo um objeto com as chaves foreingKey e as. Aonde foreignKey representa o nome da chave no modelo extrangeiro e as um apelido para aquela associação que será usado na query.
+			- deve-se pensar qual das tabelas irá emprestar sua primary key e qual vai ter uma coluna recebendo uma foreign key. Ou seja, a tabela que tem uma coluna de foreign keys deve declarar de forma explicita a referencia no corpo do model e da migration e usa as funções de associação belongs. Já a tabela que empresta sua primary key usa somente as funções de associação do grupo has
 		- requisições
 			- A grande diferença quando vamos fazer uma requisição que necessite da utilização de uma association com o Sequelize, é o campo include
 			- o campo `include` é um objeto com as propriedades `model` e `as`, aonde model é o model da chave extrangeira e as deve ser igual a que declaramos no momento da criação da associação no respectivo model.
 ```js
-// src/migrations/[timestamp]-create-addresses.js
+// src/migrations/[timestamp]-create-Employees.js
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    return queryInterface.createTable('addresses', {
-     { ... }
-      employeeId: {
+    return queryInterface.createTable('Employees', {
+     { ... },
+      age: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+      },
+      addressId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         // Configuram o que deve acontecer ao atualizar ou excluir um funcionário
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
-        field: 'employee_id',
+        field: 'address_id', // o nome do campo na DB
         // Informa que o campo é uma Foreign Key (Chave estrangeira)
         references: {
           // Informa a tabela da referência da associação
-          model: 'employees',
-          // Informa a coluna da referência que é a chave correspondente
+          model: 'Address',
+          // Informa a coluna da tabela da referência da associação
           key: 'id',
         },
       },
@@ -566,7 +566,38 @@ module.exports = {
   },
 
   down: async (queryInterface, _Sequelize) => {
-    return queryInterface.dropTable('addresses');
+    return queryInterface.dropTable('Employees');
+  },
+};
+	
+// src/migrations/[timestamp]-create-Addresses.js
+
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    return queryInterface.createTable('Addresses', {
+     id: {
+	allowNull: false,
+	autoIncrement: true,
+	primaryKey: true,
+	type: Sequelize.INTEGER,
+      },
+     city: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
+      street: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
+      number: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+      },
+    });
+  },
+
+  down: async (queryInterface, _Sequelize) => {
+    return queryInterface.dropTable('Addresses');
   },
 };
 	
@@ -578,16 +609,21 @@ module.exports = (sequelize, DataTypes) => {
 			firstName: DataTypes.STRING,
 			lastName: DataTypes.STRING,
 			age: DataTypes.INTEGER,
+			addressId: {
+				type: Sequelize.INTEGER,
+				field: 'address_id',
+				foreignKey: true,
+			},
 		},
 		{
-			timestamps: false, // remove a obrigatoriedade de utilizar os campos `createdAt` e `updatedAt`
+			timestamps: false,
 			tableName: 'employees',
 			underscored: true,
 	});
 
 	Employee.associate = (models) => {
-		Employee.hasOne(models.Address,
-			{ foreignKey: 'employeeId', as: 'addresses' });
+		Employee.belongsTo(models.Address,
+			{ foreignKey: 'id', as: 'addresses' });
 		};
 
 	return Employee;
@@ -601,8 +637,6 @@ module.exports = (sequelize, DataTypes) => {
     city: DataTypes.STRING,
     street: DataTypes.STRING,
     number: DataTypes.INTEGER,
-    employeeId: { type: DataTypes.INTEGER, foreignKey: true },
-    // A declaração da Foreign Key é opcional no model
   },
   {
     timestamps: false,
@@ -611,8 +645,8 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   Address.associate = (models) => {
-    Address.belongsTo(models.Employee,
-      { foreignKey: 'employeeId', as: 'employees' });
+    Address.hasOne(models.Employee,
+      { foreignKey: 'addressId', as: 'employees' });
   };
 
   return Address;
