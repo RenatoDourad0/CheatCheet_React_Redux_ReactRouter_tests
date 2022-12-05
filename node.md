@@ -368,10 +368,11 @@ router.get('/:id', async (req, res) => {
 - migrations
 	- representa as alterações em estruturas de tabelas do banco de dados. Basicamente um controle de versão
 	- a função up constroi o novo recurso e a função down desfaz a up
-	- o comando `npx sequelize migration:generate --name <nome>` cria o arquivo de migration, aonde o nome deve ser igual o do model porém no plural
+	- o comando `npx sequelize migration:generate --name <nome>` cria o arquivo de migration, aonde o nome deve ser igual o do model porém no plural e minúsculo
 	- o comando `npx sequelize db:migrate` executa as migrations
 	- o comando `npx sequelize db:migrate:undo` desfaz a ultima migration
 	- para reverter ATÉ uma migration específica `npx sequelize-cli db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js`
+	- funções de migration - createTable, addColumn, updateColumn, dropTable, removeColumn ...
 ```js
 	'use strict';
 /** @type {import('sequelize-cli').Migration} */
@@ -410,6 +411,7 @@ module.exports = {
 	- usar a função define do sequelize
 	- caracterizar os nomes das propriedades e os tipos de dados a serem usados
 	- outra forma de se criar models é atravéz da cli `npx sequelize model:generate --name <nome> --attributes fullName:string,email:string` que gera um arquivo model e um arquivo migration.
+	- no model propriedades padrão como created_at, updated_at e id podem ser omitidas porém é recomendado explicitar a declaração 
 ```js
 // src/models/user.model.js
 
@@ -524,15 +526,15 @@ module.exports = {
 		- migration
 			- além das proprieddes descritas acima adicionar as propriedades references, onUpdate e onDelete a chaves extrangeiras quando construindo a migration
 				- onUpdate e onDelete podem ter os valores
-					- cascade: ao se alterar ou excluir uma linha em uma tabela extrangeira, a tabela que recebe a chave extrangeira também será atualizada
-					- outro:
+					- cascade: ao se alterar ou excluir uma linha em uma tabela, a linha na tabela que usa a chave extrangeira também será alterada ou excluida
+					- outro: setNull, ...
 				- references é um objeto com as propriedades model e key. Model referencia o nome da tabela da chave extrangeira e key referencia o nome da coluna da chave extrangeira
 		- model
 			- utilizar a função associate do model tanto do lado que vai receber a chave extrangeira quanto do lado que vai fornecer os dados. Ela recebe como parametro os models, disponibilizando para as funções de associação
 			- O lado que vai receber informação usa a função hasOne ou hasMany do model e o lado que vai fornecer usa a função belongsTo ou bolongsToMany
 			- funções de associação `hasOne bolongsTo hasMany bolongsToMany`
-			- as funções de associação recebem dois argumentos, o primeiro é o model da chave extrangeira e o segundo um objeto com as chaves foreingKey e as. Aonde foreignKey representa o nome da chave no modelo extrangeiro e as um apelido para aquela associação que será usado na query.
-			- deve-se pensar qual das tabelas irá emprestar sua primary key e qual vai ter uma coluna recebendo uma foreign key. Ou seja, a tabela que tem uma coluna de foreign keys deve declarar de forma explicita a referencia no corpo do model e da migration e usa as funções de associação belongs. Já a tabela que empresta sua primary key usa somente as funções de associação do grupo has
+			- as funções de associação recebem dois argumentos, o primeiro é o model da chave extrangeira e o segundo um objeto com as chaves foreingKey e as. Aonde foreignKey representa o nome da chave no modelo extrangeiro e as um apelido para aquela associação que será usado no retorno da query para os valores da tabela extrangeira.
+			- deve-se pensar qual das tabelas irá emprestar sua primary key e qual vai ter uma coluna recebendo uma foreign key. Ou seja, a tabela que tem uma coluna de foreign keys deve declarar de forma explicita essa coluna e sua referencia no corpo do model e da migration e usa as funções de associação belongs. Já a tabela que empresta sua primary key usa somente as funções de associação do grupo has, não declarando campos no migration e model
 		- requisições
 			- A grande diferença quando vamos fazer uma requisição que necessite da utilização de uma association com o Sequelize, é o campo include
 			- o campo `include` é um objeto com as propriedades `model` e `as`, aonde model é o model da chave extrangeira e as deve ser igual a que declaramos no momento da criação da associação no respectivo model.
