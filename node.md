@@ -466,12 +466,13 @@ module.exports = {
   down: async (queryInterface) => queryInterface.bulkDelete('Users', null, {}),
 };
 ```
-- operações
+- requisições
 	- [docs](https://sequelize.org/docs/v6/core-concepts/model-querying-basics/)
 	- Os models são os responsaveis por realizar operações na db. São chamados nos services, deve-se importar o arquivo index da pasta models e desestruturar pelo nome dos models
 	- funções assíncronas nativas do sequelize como `<model-name>. findAll(), findByPk(id), findOne({ where: { id, email } }), findAll({ where: { id, email }, order: [ ['name', 'ASC'] ] }), create({ fullName, email }), update({ fullName, email }, { where: { id } }), destroy({ where: { id } })`
 	- para ordenação usar a chave order do objeto de configuração. Recebe um array com outros arrays que representam a ordem de prioridade na ordenação. Na primeira posição a coluna a ser usada e na segunda a forma de ordenaçÃo (ASC, DESC)
 	- para remover proriedades usar a chave attributes, um objetocom a propriedade excludes que por sua vez é um array
+	- a chave where permite filtar resultados
 ```js
 // src/services/user.service.js
 
@@ -521,10 +522,76 @@ module.exports = {
   deleteUser,
 };
 ```
+- transações
+	- Uma transação simboliza uma unidade de trabalho indivisível executada do banco de dados de forma independente de outras transações. Ou seja, um conjunto de operações aonde ou todo o trabalho é feito, ou nada é feito
+	- Uma transação de banco de dados relacional, por definição, deve ser atômica (Se algo falhar, a transação inteira falha - indivisível), consistente (todas as regras do banco de dados devem ser respeitadas), isolada (uma transação não pode interferir em outra transação) e durável (uma vez finalizada, os dados devem ser armazenados de forma permanente), mais conhecida pela sigla ACID
+	- Transações aumentam a confiabilidade da sua aplicação, já que respeitam o princípio da atomicidade, evitando popular o banco de dados de forma inconsistente
+	- Unmanaged transactions
+		- é preciso indicar manualmente a circunstância em que uma transação deve ser finalizada ou revertida, ou seja, executar o commit ou rollback
+	- Managed transactions
+		- o próprio Sequelize gerencia as transações e determina em tempo de execução, quando deve finalizar ou reverter uma transação
+```js
+// src/services/employee.service.js
+	
+// unmaneged transaction
+const insert = async ({ firstName, lastName, age, city, street, number }) => {
+  const t = await sequelize.transaction(); // cria a transação
+  try {
+    // Depois executamos as operações
+    const employee = await Employee.create(
+      { firstName, lastName, age },
+      { transaction: t }, // vincula a operação a transação
+    );
+
+    await Address.create(
+      { city, street, number, employeeId: employee.id },
+      { transaction: t },
+    );
+
+// Se chegou até essa linha, quer dizer que nenhum erro ocorreu.
+// Com isso, podemos finalizar a transação usando a função `commit`.
+    await t.commit(); // finaliza a transação
+    return employee;
+  } catch (e) {
+// Se entrou nesse bloco é porque alguma operação falhou.
+// Nesse caso, o sequelize irá reverter as operações anteriores com a função rollback, não sendo necessário fazer manualmente
+    await t.rollback(); // reverte a transação
+    console.log(e);
+    throw e; // Jogamos o erro para a controller tratar
+  }
+};
+	
+// managed transaction
+
+const insert = async ({ firstName, lastName, age, city, street, number }) => {
+  const t = await sequelize.transaction(); // cria a transação
+  try {
+    const result = await sequelize.transaction(async (t) => { // passa a transação como argumento
+      const employee = await Employee.create({
+        firstName, lastName, age
+      }, { transaction: t }); // vincula a transação
+
+      await Address.create({
+        city, street, number, employeeId: employee.id
+      }, { transaction: t });
+      return employee;
+    });
+    return result;
+// Se chegou até aqui é porque as operações foram concluídas com sucesso,
+// não sendo necessário finalizar a transação manualmente.
+// `result` terá o resultado da transação, no caso um empregado e o endereço cadastrado
+  } catch (e) {
+// Se entrou nesse bloco é porque alguma operação falhou.
+// Nesse caso, o sequelize irá reverter as operações anteriores com a função rollback, não sendo necessário fazer manualmente
+    console.log(e);
+    throw e; // Jogamos o erro para a controller tratar
+  }
+// };
+```
 - relacionamentos
 	- 1:1 / 1:N
 		- migration
-			- além das proprieddes descritas acima adicionar as propriedades `references, onUpdate e onDelete` a chaves extrangeiras quando construindo a migration
+			- além das propriedades descritas acima adicionar as propriedades `references, onUpdate e onDelete` a chaves extrangeiras quando construindo a migration
 				- `onUpdate e onDelete` podem ter os valores
 					- `cascade`: ao se alterar ou excluir uma linha em uma tabela, a linha na tabela que usa a chave extrangeira também será alterada ou excluida
 					- outro: `setNull`, ...
@@ -537,7 +604,7 @@ module.exports = {
 			- deve-se pensar qual das tabelas irá emprestar sua primary key e qual vai ter uma coluna recebendo uma foreign key. Ou seja, a tabela que tem uma coluna recebendo foreign keys deve declarar de forma explicita essa coluna e sua referência no corpo do model e da migration e usa as funções de associação belongs. Já a tabela que empresta sua primary key usa somente as funções de associação do grupo has, não declarando campos no migration e model
 		- requisições
 			- [docs](https://sequelize.org/docs/v6/core-concepts/model-querying-finders/)	
-			- A grande diferença quando vamos fazer uma requisição que necessite da utilização de uma association com o Sequelize, é o campo include
+			- A grande diferença quando vamos fazer uma requisição que necessite da utilização de uma association com o Sequelize, é o campo include. Se incluso o sequelize utilizará o eager loading para fazer a requisição, retornando os dados já unidos (join feita). Se omitido o sequelize fará uma requisição normal, trazendo somente a chave extrangeira.
 			- o campo `include` é um objeto com as propriedades `model` e `as` ou um array com objetos que tenha as propriedades `model` e `as`, aonde model é o model da chave extrangeira e as deve ser igual a que declaramos no momento da criação da associação no respectivo model.
 ```js
 // src/migrations/[timestamp]-create-Employees.js
@@ -669,7 +736,117 @@ const getAll = async () => {
 
 module.exports = { getAll };
 ```
+	- N:N
+		-  pode ser visto também como dois relacionamentos um para muitos (1:N) ligados por uma tabela intermediária, chamada de tabela de junção
+		- A tabela de junção possui dois campos compondo uma chave primária composta
+		- Para se definir o relacionamento atrvés de uma tabela intermediaria o model da mesma deve 
+```js
+// src/models/User.js
+module.exports = (sequelize, DataTypes) => {
+  const User = sequelize.define('User', {
+    id: { type: DataTypes.INTEGER, primaryKey: true },
+    firstName: DataTypes.STRING,
+    lastName: DataTypes.STRING,
+    age: DataTypes.INTEGER,
+  },
+    {
+      timestamps: false,
+      underscored: true,
+    });
+
+  return User;
+};
 	
+// src/models/Book.js
+module.exports = (sequelize, DataTypes) => {
+  const Book = sequelize.define('Book', {
+    id: { type: DataTypes.INTEGER, primaryKey: true },
+    name: DataTypes.STRING,
+    releaseYear: DataTypes.INTEGER,
+    totalPages: DataTypes.INTEGER,
+  },
+    {
+      timestamps: false,
+      underscored: true,
+    });
+
+  return Book;
+};
+	
+// src/migrations/20221206132302-create-users-books - tabela intermediária
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('users_books', { // define as duas chaves como foreign keys (propriedade references) e primary keys(prop primaryKey)
+      userId: {
+        type: Sequelize.INTEGER,
+        field: 'user_id',
+        references: {
+          model: 'users',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+        primaryKey: true,
+      },
+      bookId: {
+        type: Sequelize.INTEGER,
+        field: 'book_id',
+        references: {
+          model: 'books',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+        primaryKey: true, // AS DUAS COLUNAS TEM O PRIMARY KEY EXPLICITO (PRIMARY KEY COMPOSTA)
+      },
+    });
+  },
+
+  down: async (queryInterface, _Sequelize) => {
+    await queryInterface.dropTable('users_books');
+  },
+};
+	
+// src/models/UserBook.js - tabela intermediária
+module.exports = (sequelize, _DataTypes) => {
+  const UserBook = sequelize.define('UserBook',
+    {}, // não é preciso definir as chaves nem as propriedades foreign e primary key, o sequelize já define sozinho
+    {
+      timestamps: false,
+      underscored: true, 
+      tableName: 'users_books'
+    },
+  );
+  UserBook.associate = (models) => {
+    models.Book.belongsToMany(models.User, { // associar os dois models que usam a tabela de ligação (no caso Book e User) em relação 1:N
+      as: 'users', //alias
+      through: UserBook, // o model da tabela de ligação
+      foreignKey: 'bookId', // se refere ao model em que belongsToMany é chamado
+      otherKey: 'userId', // e refere ao model com o qual estamos criando a associação
+    });
+    models.User.belongsToMany(models.Book, {
+      as: 'books',
+      through: UserBook,
+      foreignKey: 'userId',
+      otherKey: 'bookId',
+    });
+  };
+  return UserBook;
+};
+	
+// src/services/userBook.service.js
+const { User, Book } = require('../models');
+
+const getUsersBooksById = (id) => User.findOne({
+  where: { id },
+  include: [{ model: Book, as: 'books', through: { attributes: [] } }], // a propriedade through com attributes vazio é necessaria para que não se retorne dentro da chave books todos os seus users
+});
+
+module.exports = {
+  getUsersBooksById,
+};
+
+```
 ### leitura e escrita de arquivos com fs
   -  terceiro parâmentro flag opcional
       - `w` para escrita
@@ -1062,6 +1239,9 @@ describe('Foo', function () {
 #### testes com sequelize-test-helpers
   - [docs](https://www.npmjs.com/package/sequelize-test-helpers)
 	- quando o objetivo é fazer um teste unitario do service (mokar o model) ou fazer teste do model na mão, deve-se importar o model desestruturando a referencia ao models/index.js. Quando se deseja utilizar o model com sequelize-test-helpers deve-se importar o arquivo do model em sí
+	- para usar o banco de dados em ambiente de testes é necessário inicializar o mesmo para o ambiente de teste ```NODE_ENV=test npx sequelize-cli db:create
+NODE_ENV=test npx sequelize-cli db:migrate
+NODE_ENV=test npx sequelize-cli db:seed:all```
 ```js
 // teste na mão
 const { expect } = require('chai');
