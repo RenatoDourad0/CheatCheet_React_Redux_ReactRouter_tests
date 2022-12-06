@@ -440,7 +440,7 @@ module.exports = UserModel;
 	- um seeder é usado para, basicamente, alimentar o banco de dados com informações necessárias para o funcionamento mínimo da aplicação
 	- tambem possui as funções up e down
 	- comando para criar o arquivo `npx sequelize seed:generate --name <nome>`
-	- comando para executar as seeds `npx sequelize db:seed:all`
+	- comando para executar as seeds `npx sequelize db:seed:all` ou `npx sequelize db:seed --seed <caminho-do-arquivo>` para executar uma seed específica
 	- comando para desfazer a ultima seed `npx sequelize-cli db:seed:undo` e para desfazer todas seeds `npx sequelize db:seed:undo:all`
 	- comando para desfazer seed especifica `npx sequelize-cli db:seed:undo --seed name-of-seed-as-in-data`
 ```js
@@ -524,20 +524,21 @@ module.exports = {
 - relacionamentos
 	- 1:1 / 1:N
 		- migration
-			- além das proprieddes descritas acima adicionar as propriedades references, onUpdate e onDelete a chaves extrangeiras quando construindo a migration
-				- onUpdate e onDelete podem ter os valores
-					- cascade: ao se alterar ou excluir uma linha em uma tabela, a linha na tabela que usa a chave extrangeira também será alterada ou excluida
-					- outro: setNull, ...
-				- references é um objeto com as propriedades model e key. Model referencia o nome da tabela da chave extrangeira e key referencia o nome da coluna da chave extrangeira
+			- além das proprieddes descritas acima adicionar as propriedades `references, onUpdate e onDelete` a chaves extrangeiras quando construindo a migration
+				- `onUpdate e onDelete` podem ter os valores
+					- `cascade`: ao se alterar ou excluir uma linha em uma tabela, a linha na tabela que usa a chave extrangeira também será alterada ou excluida
+					- outro: `setNull`, ...
+				- `references` é um objeto com as propriedades `model e key`. `model` referencia o nome da tabela da chave extrangeira e `key` referencia o nome da coluna da chave extrangeira
 		- model
-			- utilizar a função associate do model tanto do lado que vai receber a chave extrangeira quanto do lado que vai fornecer os dados. Ela recebe como parametro os models, disponibilizando para as funções de associação
-			- O lado que vai receber informação usa a função hasOne ou hasMany do model e o lado que vai fornecer usa a função belongsTo ou bolongsToMany
+			- utilizar a função `associate()` do model tanto do lado que vai receber a chave extrangeira quanto do lado que vai fornecer os dados. Ela recebe como parametro `models`, disponibilizando para as funções de associação
+			- O lado que vai receber informação (tem uma coluna recebendo foreing key) usa as funções belongsTo ou bolongsToMany do model e o lado que vai fornecer informações (emprestar sua chave primaria) usa as funções hasOne ou hasMany 
 			- funções de associação `hasOne bolongsTo hasMany bolongsToMany`
 			- as funções de associação recebem dois argumentos, o primeiro é o model da chave extrangeira e o segundo um objeto com as chaves foreingKey e as. Aonde foreignKey representa o nome da chave no modelo extrangeiro e as um apelido para aquela associação que será usado no retorno da query para os valores da tabela extrangeira.
-			- deve-se pensar qual das tabelas irá emprestar sua primary key e qual vai ter uma coluna recebendo uma foreign key. Ou seja, a tabela que tem uma coluna de foreign keys deve declarar de forma explicita essa coluna e sua referencia no corpo do model e da migration e usa as funções de associação belongs. Já a tabela que empresta sua primary key usa somente as funções de associação do grupo has, não declarando campos no migration e model
+			- deve-se pensar qual das tabelas irá emprestar sua primary key e qual vai ter uma coluna recebendo uma foreign key. Ou seja, a tabela que tem uma coluna recebendo foreign keys deve declarar de forma explicita essa coluna e sua referência no corpo do model e da migration e usa as funções de associação belongs. Já a tabela que empresta sua primary key usa somente as funções de associação do grupo has, não declarando campos no migration e model
 		- requisições
+			- [docs](https://sequelize.org/docs/v6/core-concepts/model-querying-finders/)	
 			- A grande diferença quando vamos fazer uma requisição que necessite da utilização de uma association com o Sequelize, é o campo include
-			- o campo `include` é um objeto com as propriedades `model` e `as`, aonde model é o model da chave extrangeira e as deve ser igual a que declaramos no momento da criação da associação no respectivo model.
+			- o campo `include` é um objeto com as propriedades `model` e `as` ou um array com objetos que tenha as propriedades `model` e `as`, aonde model é o model da chave extrangeira e as deve ser igual a que declaramos no momento da criação da associação no respectivo model.
 ```js
 // src/migrations/[timestamp]-create-Employees.js
 
@@ -660,7 +661,7 @@ const { Address, Employee } = require('../models/');
 
 const getAll = async () => {
   const users = await Employee.findAll({
-    include: { model: Address, as: 'addresses' },
+    include: [{ model: Address, as: 'addresses' }, { model: Foo, as: 'bar' }],
   });
 
   return users;
