@@ -532,7 +532,7 @@ module.exports = {
 		- o próprio Sequelize gerencia as transações e determina em tempo de execução, quando deve finalizar ou reverter uma transação
 ```js
 // src/services/employee.service.js
-	
+const { Employee, sequelize } = require('../models');
 // unmaneged transaction
 const insert = async ({ firstName, lastName, age, city, street, number }) => {
   const t = await sequelize.transaction(); // cria a transação
@@ -600,8 +600,8 @@ const insert = async ({ firstName, lastName, age, city, street, number }) => {
 			- utilizar a função `associate()` do model tanto do lado que vai receber a chave extrangeira quanto do lado que vai fornecer os dados. Ela recebe como parametro `models`, disponibilizando para as funções de associação
 			- O lado que vai receber informação (tem uma coluna recebendo foreing key) usa as funções belongsTo ou bolongsToMany do model e o lado que vai fornecer informações (emprestar sua chave primaria) usa as funções hasOne ou hasMany 
 			- funções de associação `hasOne bolongsTo hasMany bolongsToMany`
-			- as funções de associação recebem dois argumentos, o primeiro é o model da chave extrangeira e o segundo um objeto com as chaves foreingKey e as. Aonde foreignKey representa o nome da chave no modelo extrangeiro e as um apelido para aquela associação que será usado no retorno da query para os valores da tabela extrangeira.
-			- deve-se pensar qual das tabelas irá emprestar sua primary key e qual vai ter uma coluna recebendo uma foreign key. Ou seja, a tabela que tem uma coluna recebendo foreign keys deve declarar de forma explicita essa coluna e sua referência no corpo do model e da migration e usa as funções de associação belongs. Já a tabela que empresta sua primary key usa somente as funções de associação do grupo has, não declarando campos no migration e model
+			- as funções de associação recebem dois argumentos, o primeiro é o model da chave extrangeira e o segundo um objeto com as chaves foreingKey e as. Aonde foreignKey representa o nome da chave extrangeira e as um apelido para aquela associação que será usado no retorno da query para os valores da tabela extrangeira
+			- deve-se pensar qual das tabelas irá emprestar sua primary key e qual vai ter uma coluna recebendo uma foreign key. Ou seja, a tabela que tem uma coluna recebendo foreign keys deve declarar de forma explicita essa coluna e sua referência no model/migration além de usar as funções de associação belongs com a chave foreignKey referenciando a sua própria chave extrangeira. Já a tabela que empresta sua primary key não declara nenhuma coluna extra no seu model/migration e somente usa as funções de associação do grupo has com a chave foreignKey referenciando a chave extrangeira do model sendo relacionado
 		- requisições
 			- [docs](https://sequelize.org/docs/v6/core-concepts/model-querying-finders/)	
 			- A grande diferença quando vamos fazer uma requisição que necessite da utilização de uma association com o Sequelize, é o campo include. Se incluso o sequelize utilizará o eager loading para fazer a requisição, retornando os dados já unidos (join feita). Se omitido o sequelize fará uma requisição normal, trazendo somente a chave extrangeira.
@@ -693,7 +693,7 @@ module.exports = (sequelize, DataTypes) => {
 
 	Employee.associate = (models) => {
 		Employee.belongsTo(models.Address,
-			{ foreignKey: 'id', as: 'addresses' });
+			{ foreignKey: 'addressId', as: 'addresses' });
 		};
 
 	return Employee;
@@ -736,10 +736,21 @@ const getAll = async () => {
 
 module.exports = { getAll };
 ```
+-
 	- N:N
 		-  pode ser visto também como dois relacionamentos um para muitos (1:N) ligados por uma tabela intermediária, chamada de tabela de junção
 		- A tabela de junção possui dois campos compondo uma chave primária composta
-		- Para se definir o relacionamento atrvés de uma tabela intermediaria o model da mesma deve 
+		- Para se definir o relacionamento atrvés de uma tabela intermediaria o model da mesma deve
+		- migration
+			- a tabela de ligação deve ser construida com as duas chaves como primayKey e foreign key (propriedade references) ao mesmo tempo
+			- as outras tabelas devem ser contruidas de forma normal, sem foreignKey
+		- model
+			- as tabelas que participam do relacionamento mas não são a de ligação são declaradas sem colunas de foreignKey e sem funções de associação
+			- jã a tabela de ligação deve ser declarada sem chaves (o sequelize interpreta que as associações são as chaves) e com funções de associação que referenciam as duas outras tabelas do relacionamento
+				- ambas as associações são do tipo belongsToMany e devem ter em seu objeto de configuração as propriedades foreignKey (referencia a chave do próprio modelo de ligação que representa a foreignKey do modelo no qual a função belongsToMany é chamada), otherKey (a outra chave, referencia a chave do próprio modelo de ligação que representa a foreignKey do modelo do primeiro argumento da função belongsToMany), as (apelido da associação usado no retorno da query) e through (representa o modelo que faz a ligação entre as duas, ou seja, o modelo da tabela de associação)
+		- requisições
+			- requisições N:N são feitas nos models que representam as entidades, e não no model da tabela intermediaria
+			- usar o `through: { attributes: [] } }` para que o retorno da query não traga os valores da tabela intermediária (por exemplo uma query que busca livros de um usuário pelo seu id sem o through retornaria em cada livro o id do usuário, o que é reduntante. Com o through essa informação não e retonada)
 ```js
 // src/models/User.js
 module.exports = (sequelize, DataTypes) => {
