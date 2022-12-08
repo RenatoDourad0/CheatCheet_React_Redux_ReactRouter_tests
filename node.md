@@ -2,7 +2,7 @@
 ## express
 ### ambiente
   - `npm init -y` 
-  - `npm i express express-async-errors@3.1 cors@2.8 morgan mysql2@2.3 sequelize dotenv@16.0.1 joi@17.6`
+  - `npm i express express-async-errors@3.1 cors@2.8 body-parser morgan mysql2@2.3 sequelize dotenv@16.0.1 joi@17.6 jsonwebtoken@8.5`
   - `npm i -D sequelize-cli sequelize-test-helpers nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0 sinon-chai nyc@15.1` 
     - versões especificas somente para trybe
   - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
@@ -47,6 +47,7 @@ MYSQL_QUEUE_LIMIT=0
 ```js
 "main": "src/server.js"
 "scripts": {
+"prestart": "npx sequelize db:drop && npx sequelize db:create && npx sequelize db:migrate",
 "start": "node src/server.js",
 "dev": "nodemon src/server.js",
 "lint": "eslint --no-inline-config --no-error-on-unmatched-pattern -c .eslintrc.json .",
@@ -96,20 +97,28 @@ const express = require('express');
 require('express-async-errors');
 const morgan = require('morgan');
 const cors = require('cors');
-
+const bodyParser = require('body-parser');
+	
+const port = process.env.PORT || 3001;
 const app = express();
+	
 app.use(morgan('dev'));
-app.use(express.json());
-app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors({
+    origin: `http://localhost:${PORT}`,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Authorization'],
+  }));
 // ...
 module.exports = app;
 	
 // src/server.js
 const app = require('./app');
-const connection = require('./db/connection');
+const connection = require('./db/connection'); // mysql2
 require('dotenv').config();
   
-const port = 3001;
+const port = process.env.PORT || 3001;
 app.listen(port, async () => {
   console.log(`API TrybeCash está sendo executada na porta ${port}`);
 // codigo para testar conexão com db. Pode retirar depois de verificado, deixando somente a linha acima
@@ -471,6 +480,7 @@ module.exports = {
 	- Os models são os responsaveis por realizar operações na db. São chamados nos services, deve-se importar o arquivo index da pasta models e desestruturar pelo nome dos models
 	- funções assíncronas nativas do sequelize como `<model-name>. findAll(), findByPk(id), findOne({ where: { id, email } }), findAll({ where: { id, email }, order: [ ['name', 'ASC'] ] }), create({ fullName, email }), update({ fullName, email }, { where: { id } }), destroy({ where: { id } })`
 	- para ordenação usar a chave order do objeto de configuração. Recebe um array com outros arrays que representam a ordem de prioridade na ordenação. Na primeira posição a coluna a ser usada e na segunda a forma de ordenaçÃo (ASC, DESC)
+	- o retorno das funções do sequelize possui metadados do mesmo. Para remove-los usar a propriedade dataValues do retorno
 	- para remover proriedades usar a chave attributes, um objetocom a propriedade excludes que por sua vez é um array
 	- a chave where permite filtar resultados
 ```js
@@ -858,46 +868,6 @@ module.exports = {
 };
 
 ```
-### leitura e escrita de arquivos com fs
-  -  terceiro parâmentro flag opcional
-      - `w` para escrita
-      - `wx` lança errro caso o arquivo exista
-  - leitura
-```js
-const fs = require('fs').promises;
-const path = require('path');
-
-async function readData() {
-  try {
-    const json = await fs.readFile(path.resolve(__dirname, './meu-arquivo.txt'), 'utf-8');
-    const data = JSON.parse(data);
-    return data;
-    console.log('arquivo lido com sucesso');
-  } catch (err) {
-    console.error(`Erro ao ler o arquivo: ${err.message}`);
-  }
-}
-```
-  - escrita
-```js
- const fs = require('fs').promises;
- const path = require('path');
- 
- async function updateFile(id, newData) {
-  try {
-    const oldFile = await readData();
-    // operação com arquivo antigo
-    // const index = oldFile.<prop>.findIndex(...);
-    // oldFile.<prop>[index] = { id, ...newData };
-    const newFile = JSON.stringify(oldFile);
-    await fs.writeFile(path.resolve(__dirname, './meu-arquivo.txt'), newFile);
-    console.log('Arquivo escrito com sucesso!');
-  } catch (err) {
-    console.error(`Erro ao escrever o arquivo: ${err.message}`);
-  }
-}
- ```
-
 ### arquitetura MSC
 #### model
   - É a camada mais próxima da base de dados
@@ -1303,6 +1273,199 @@ describe('O model de User', () => {
   });
 });
 ```
+### leitura e escrita de arquivos com fs
+  -  terceiro parâmentro flag opcional
+      - `w` para escrita
+      - `wx` lança errro caso o arquivo exista
+  - leitura
+```js
+const fs = require('fs').promises;
+const path = require('path');
+
+async function readData() {
+  try {
+    const json = await fs.readFile(path.resolve(__dirname, './meu-arquivo.txt'), 'utf-8');
+    const data = JSON.parse(data);
+    return data;
+    console.log('arquivo lido com sucesso');
+  } catch (err) {
+    console.error(`Erro ao ler o arquivo: ${err.message}`);
+  }
+}
+```
+  - escrita
+```js
+ const fs = require('fs').promises;
+ const path = require('path');
+ 
+ async function updateFile(id, newData) {
+  try {
+    const oldFile = await readData();
+    // operação com arquivo antigo
+    // const index = oldFile.<prop>.findIndex(...);
+    // oldFile.<prop>[index] = { id, ...newData };
+    const newFile = JSON.stringify(oldFile);
+    await fs.writeFile(path.resolve(__dirname, './meu-arquivo.txt'), newFile);
+    console.log('Arquivo escrito com sucesso!');
+  } catch (err) {
+    console.error(`Erro ao escrever o arquivo: ${err.message}`);
+  }
+}
+ ```
+### JWT
+- O JWT (JSON Web Token) é um token gerado a partir de dados “pessoais” que pode ser trafegado pela internet ao fazer requisições para APIs e afinscom o objetivo de autenticar e verificar permissões de usuários
+- Autenticaço !== autorização
+	- Autenticação é utilizada para verificar sua identidade, realizada por meio de informações confidenciais como email e senha.
+	- Autorização verifica as permissões de uma pessoa para acessar ou executar determinadas operações.
+- a signature gerada pelo JWT consite em uma string criptografada a partir de tres partes. Header que informa os metadados da operação, payload que contém os dados da requisição (body por exemplo) e secret, que é a chave do JWT
+	- Header contém as propriedades `alg, typ`, alg sendo o tipo do algoritimo de encriptação (por exemplo 'HS256') e typ o tipo do token, no caso 'JWT'. Além de outras propriedades como `expiresIn`
+	- Payload contém os dados da entidade, como nome, id e permissões
+	- Signature consiste no header e no payload codificados em base64, usando o algoritmo definido no header
+	- gerando a estrutura `(Header em base64).(Payload em base64).(Signature em base64)`
+- uma vez o usuário tentando fazer login e seus dados sendo validados é gerado o token que será retornado ao usuário
+	- a função sign do JWT recebe três argumentos nesta ordem, o objeto payload (os dados da entidade), o secret para criptografar, e header (objeto de configuração)
+```js
+require('dotenv/config');
+const jwt = require('jsonwebtoken');
+const { UserService } = require('../services');
+
+/* Sua chave secreta. É com ela que os dados do seu usuário serão encriptados.
+   Em projetos reais, armazene-a numa variável de ambiente e tenha cuidado com ela, pois só quem tem acesso
+   a ela poderá criar ou alterar tokens JWT. */
+const secret = process.env.JWT_SECRET || 'seusecretdetoken';
+
+const isBodyValid = (username, password) => username && password;
+
+module.exports = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!isBodyValid(username, password)) {
+      return res.status(401).json({ message: 'É necessário usuário e senha para fazer login' });
+    }
   
-DUVIDAS 
-  Como tratar erros das requisiçoes da camada model. (try/catch nosconnection.execute?)
+    const user = await UserService.getByUsername(username);
+  
+    if (!user || user.password !== password) {
+      return res.status(401).json({ message: 'Usuário não existe ou senha inválida' }); 
+    }
+
+    /* Criamos uma config básica para o nosso JWT, onde:
+    expiresIn -> significa o tempo pelo qual esse token será válido;
+    algorithm -> algoritmo que você usará para assinar sua mensagem
+                (lembra que falamos do HMAC-SHA256 lá no começo?). */
+
+    /* A propriedade expiresIn aceita o tempo de forma bem descritiva. Por exemplo: '7d' = 7 dias. '8h' = 8 horas. */
+    const jwtConfig = {
+      expiresIn: '7d',
+      algorithm: 'HS256',
+    };
+
+    /* Aqui é quando assinamos de fato nossa mensagem com a nossa "chave secreta".
+      Mensagem essa que contém dados do seu usuário e/ou demais dados que você
+      quiser colocar dentro de "data".
+      O resultado dessa função será equivalente a algo como: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjozLCJ1c2VybmFtZSI6Iml0YWxzc29kaiIsInBhc3N3b3JkIjoic2VuaGExMjMifSwiaWF0IjoxNjM4OTc1MTMyLCJleHAiOjE2Mzk1Nzk5MzJ9.hnpmu2p61Il8wdQfmUiJ7wiWXgw8UuioOU_D2RnB9kY */
+    const token = jwt.sign({ data: user.dataValues }, secret, jwtConfig); // dataValues e uma propriedade do sequelize que retorna os dados sem metadados do sequelize
+
+    /* Por fim, nós devolvemos essa informação ao usuário. */
+    res.status(200).json({ token });
+  } catch (err) {
+    return res.status(500).json({ message: 'Erro interno', error: err.message });
+  }
+};
+```
+- para autorizar o acesso do usário deste ponto para frente o token deve ser enviado pelo mesmo. Para tal criamos uma função que será usada como middleware para as nossas requisições, validando todas as rotas em que nós solicitarmos autenticação
+```js
+// src/auth/validateJWT.js
+const jwt = require('jsonwebtoken');
+
+require('dotenv/config');
+const { UserService } = require('../services');
+
+/* Mesma chave privada que usamos para criptografar o token.
+   Agora, vamos usá-la para descriptografá-lo.
+   Numa aplicação real, essa chave jamais ficaria hardcoded no código assim,
+   e muitos menos de forma duplicada, mas aqui só estamos interessados em
+   ilustrar seu uso ;) */
+const secret = process.env.JWT_SECRET || 'seusecretdetoken';
+
+module.exports = async (req, res, next) => {
+  /* Aquele token gerado anteriormente virá na requisição através do
+     header Authorization em todas as rotas que queremos que
+     sejam autenticadas. */
+  const token = req.header('Authorization');
+
+  /* Caso o token não seja informado, simplesmente retornamos
+     o código de status 401 - não autorizado. */
+  if (!token) {
+    return res.status(401).json({ error: 'Token não encontrado' });
+  }
+
+  try {
+    /* Através o método verify, podemos validar e decodificar o nosso JWT. */
+    const decoded = jwt.verify(token, secret);
+    /*
+      A variável decoded será um objeto equivalente ao seguinte:
+      {
+        data: {
+          userId: 1
+        },
+        iat: 1656616422,
+        exp: 1657221222
+      }
+    */
+
+    /* Caso o token esteja expirado, a própria biblioteca irá retornar um erro,
+       por isso não é necessário fazer validação do tempo.
+       Caso esteja tudo certo, nós então usamos o serviço de usuário para obter seus dados atualizados */
+
+    const user = await UserService.getByUserId(decoded.data.userId);
+
+    /* Não existe um usuário na nossa base com o id informado no token. */
+    if (!user) {
+      return res.status(401).json({ message: 'Erro ao procurar usuário do token.' });
+    }
+
+    /* O usuário existe! Colocamos ele em um campo no objeto req.
+       Dessa forma, o usuário estará disponível para outros middlewares que
+       executem em sequência */
+    req.user = user;
+
+    /* Por fim, chamamos o próximo middleware que, no nosso caso,
+       é a própria callback da rota. */
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: err.message });
+  }
+};
+	
+// /app.js
+const express = require('express');
+const bodyParser = require('body-parser');
+const routes = require('./routes');
+
+/* Aqui, importamos nossa função que valida se o usuário está ou não autenticado */
+const validateJWT = require('./auth/validateJWT');
+
+const app = express();
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+const apiRoutes = express.Router();
+
+apiRoutes.get('/api/posts', validateJWT, routes.getPosts);
+apiRoutes.post('/api/users', routes.createUsers);
+apiRoutes.get('/api/users', routes.getUsers);
+apiRoutes.post('/api/login', routes.login);
+
+app.use(apiRoutes);
+
+module.exports = app;
+```
+- Uma requisição usando JWT tem o formato abaixo
+```bash
+ GET /foo/bar HTTP/1.1
+ Host: www.exemplo.com
+ Authorization: Bearer (Header em base64).(Payload em base64).(Signature em base64)
+```
