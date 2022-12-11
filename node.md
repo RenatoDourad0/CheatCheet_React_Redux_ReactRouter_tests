@@ -465,7 +465,7 @@ const User = sequelize.define('User', {
 	sequelize,
 	modelName: 'User',
 	tableName: 'Users',
-	uderscored: true, // transformação automática dos camel case do model para kebab case nos campos com field declarado na migration
+	underscored: true, // transformação automática dos camel case do model para kebab case nos campos com field declarado na migration
 	timestamps: true, // permite desativar as propriedades default created_at e updated_at (devem ser omitidas da migration em caso de false)
 	});
 	return User;
