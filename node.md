@@ -2,7 +2,7 @@
 ## express
 ### ambiente
   - `npm init -y` 
-  - `npm i express express-async-errors@3.1 cors@2.8 body-parser morgan mysql2@2.3 sequelize dotenv@16.0.1 joi@17.6 jsonwebtoken@8.5`
+  - `npm i express express-async-errors@3.1 cors@2.8 body-parser morgan mysql2@2.3 sequelize dotenv@16.0.1 joi@17.6 jsonwebtoken@8.5 bcrypt`
   - `npm i -D sequelize-cli sequelize-test-helpers nodemon mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0 sinon-chai nyc@15.1` 
     - versões especificas somente para trybe
   - `npm init @eslint/config` - verificar plugins e regras no arquivo .eslintrc.json - [docs](https://eslint.org/docs/latest/user-guide/configuring/configuration-files)
@@ -1340,8 +1340,9 @@ async function readData() {
   }
 }
  ```
-### JWT
+### JWT e bcrypt
 - O JWT (JSON Web Token) é um token gerado a partir de dados “pessoais” que pode ser trafegado pela internet ao fazer requisições para APIs e afinscom o objetivo de autenticar e verificar permissões de usuários
+- bcrypt adiciona uma camada de segurança as senhas salvas no banco de dados através de um hash. Quando criado o usuário (no service user) faz a incriptação da senha e quando autenticado usa a função de comparação nativa do bcrypt como demostrado abaixo
 - Autenticaço !== autorização
 	- Autenticação é utilizada para verificar sua identidade, realizada por meio de informações confidenciais como email e senha.
 	- Autorização verifica as permissões de uma pessoa para acessar ou executar determinadas operações.
@@ -1355,6 +1356,7 @@ async function readData() {
 ```js
 require('dotenv/config');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const { UserService } = require('../services');
 
 /* Sua chave secreta. É com ela que os dados do seu usuário serão encriptados.
@@ -1377,6 +1379,10 @@ module.exports = async (req, res) => {
     if (!user || user.password !== password) {
       return res.status(401).json({ message: 'Usuário não existe ou senha inválida' }); 
     }
+    // ou se estiver usando bcrypt
+    // if (!user || !bcrypt.compareSync(password, user.password)) {
+    //   return res.status(401).json({ message: 'Usuário não existe ou senha inválida' }); 
+    // }
 
     /* Criamos uma config básica para o nosso JWT, onde:
     expiresIn -> significa o tempo pelo qual esse token será válido;
@@ -1490,6 +1496,17 @@ apiRoutes.post('/api/login', routes.login);
 app.use(apiRoutes);
 
 module.exports = app;
+	
+// services/user.service.js
+const { User } = require('../models');
+
+const create = async ({ username, password }) => {
+	const salt = bcrypt.genSaltSync(10)
+	const hashedPassword = bcrypt.hashSync(password, salt);
+	const user = await User.create({ username, password: hashedPassword })
+	const { password: _password, ...userWithoutPassword } = user;
+	return userWithoutPassword;
+}
 ```
 - Uma requisição usando JWT tem o formato abaixo
 ```bash
