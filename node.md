@@ -429,12 +429,12 @@ module.exports = {
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
-	deafult: Sequelize.NOW(),
+	default: Sequelize.NOW(),
       },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
-	deafult: Sequelize.NOW(),
+	default: Sequelize.NOW(),
       }
     });
   },
@@ -511,7 +511,7 @@ module.exports = {
 	- funções assíncronas nativas do sequelize como `<model-name>. findAll(), findByPk(id), findOne({ where: { id, email } }), findAll({ where: { id, email }, order: [ ['name', 'ASC'] ] }), create({ fullName, email }), update({ fullName, email }, { where: { id } }), destroy({ where: { id } })`
 	- para ordenação usar a chave order do objeto de configuração. Recebe um array com outros arrays que representam a ordem de prioridade na ordenação. Na primeira posição a coluna a ser usada e na segunda a forma de ordenaçÃo (ASC, DESC)
 	- o retorno das funções do sequelize possui metadados do mesmo. Para remove-los usar a propriedade dataValues do retorno
-	- para remover proriedades usar a chave attributes, um objetocom a propriedade excludes que por sua vez é um array
+	- para remover proriedades usar a chave attributes, um objeto com a propriedade excludes que por sua vez é um array
 	- a chave where permite filtar resultados
 ```js
 // src/services/user.service.js
@@ -577,7 +577,6 @@ const { Employee, sequelize } = require('../models');
 const insert = async ({ firstName, lastName, age, city, street, number }) => {
   const t = await sequelize.transaction(); // cria a transação
   try {
-    // Depois executamos as operações
     const employee = await Employee.create(
       { firstName, lastName, age },
       { transaction: t }, // vincula a operação a transação
@@ -604,7 +603,6 @@ const insert = async ({ firstName, lastName, age, city, street, number }) => {
 // managed transaction
 
 const insert = async ({ firstName, lastName, age, city, street, number }) => {
-  const t = await sequelize.transaction(); // cria a transação
   try {
     const result = await sequelize.transaction(async (t) => { // passa a transação como argumento
       const employee = await Employee.create({
@@ -638,9 +636,9 @@ const insert = async ({ firstName, lastName, age, city, street, number }) => {
 				- `references` é um objeto com as propriedades `model e key`. `model` referencia o nome da tabela da chave extrangeira e `key` referencia o nome da coluna da chave extrangeira
 		- model
 			- utilizar a função `associate()` do model tanto do lado que vai receber a chave extrangeira quanto do lado que vai fornecer os dados. Ela recebe como parametro `models`, disponibilizando para as funções de associação
-			- O lado que vai receber informação (tem uma coluna recebendo foreing key) usa as funções belongsTo ou bolongsToMany do model e o lado que vai fornecer informações (emprestar sua chave primaria) usa as funções hasOne ou hasMany 
 			- funções de associação `hasOne bolongsTo hasMany bolongsToMany`
 			- as funções de associação recebem dois argumentos, o primeiro é o model da chave extrangeira e o segundo um objeto com as chaves foreingKey e as. Aonde foreignKey representa o nome da chave extrangeira e as um apelido para aquela associação que será usado no retorno da query para os valores da tabela extrangeira
+			- O lado que vai receber informação (tem uma coluna recebendo foreing key) usa as funções belongsTo ou bolongsToMany do model e o lado que vai fornecer informações (emprestar sua chave primaria) usa as funções hasOne ou hasMany 
 			- deve-se pensar qual das tabelas irá emprestar sua primary key e qual vai ter uma coluna recebendo uma foreign key. Ou seja, a tabela que tem uma coluna recebendo foreign keys deve declarar de forma explicita essa coluna e sua referência no model/migration além de usar as funções de associação belongs com a chave foreignKey referenciando a sua própria chave extrangeira. Já a tabela que empresta sua primary key não declara nenhuma coluna extra no seu model/migration e somente usa as funções de associação do grupo has com a chave foreignKey referenciando a chave extrangeira do model sendo relacionado
 		- requisições
 			- [docs](https://sequelize.org/docs/v6/core-concepts/model-querying-finders/)	
@@ -780,7 +778,7 @@ module.exports = { getAll };
 	- N:N
 		-  pode ser visto também como dois relacionamentos um para muitos (1:N) ligados por uma tabela intermediária, chamada de tabela de junção
 		- A tabela de junção possui dois campos compondo uma chave primária composta
-		- Para se definir o relacionamento atrvés de uma tabela intermediaria o model da mesma deve
+		- Para se definir o relacionamento atarvés de uma tabela intermediaria o model da mesma deve:
 		- migration
 			- a tabela de ligação deve ser construida com as duas chaves como primayKey e foreign key (propriedade references) ao mesmo tempo
 			- as outras tabelas devem ser contruidas de forma normal, sem foreignKey
