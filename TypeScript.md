@@ -11,3 +11,31 @@
                 - instala o módulo typeScript e seus tipos, além do pacote de configuração do tsconfig.json para transpilar em node versão 16
         - `npx tsc --init` para gerar arquivo tsconfig.json
         - executar com `npx tsc nomeDoArquivo.ts` que gera um arquivo .js que pode ser executadocom `node nomeDoArquivo.js`
+
+
+## Uso
+- type alias x interface
+```ts
+type Point = {
+  x: number | string;
+  y: number;
+};
+
+interface Employee {
+    firstName: string | number;
+    lastName: string;
+    fullName(): string;
+};
+
+interface Teacher extends Employee {
+    subject?: string;
+    sayHello(): string;
+};
+
+class teacher implements Teacher {
+        firstName: 'Foo',
+        lastName: 'Foo',
+        subject: 'Bar';
+}
+```
+- type assertion x generics       
