@@ -22,6 +22,7 @@
 
 ### Types
  - boolean, number, string, enum, void, null, undefined e any
+ - Promisse
 
 ### Type alias e interface
 - funções similares para definição de tipos
@@ -36,32 +37,29 @@
 	- palavra reservada `interface`    
 	- não utiliza o operador de igualdade   
 	- pode herdar outro tipo ou interface através da palavra reservada `extends`
-	- fornece sua tipagem a classe de mesmo nome que a interface
 ```ts
 type Tpoint = {
   x?: number, // propriedade opcional
   y: number
 };
-
 type Tcoordenates = {
 	z: number
 } & Tpoint
+const position: Tcoordenates = { x: 1, y: 1, z: 1 };
 
 interface Iemployee {
     firstName: string | number;
     lastName: string;
     fullName(): string;
 };
-
 interface Teacher extends Iemployee {
     subject?: string; // propriedade opcional
     sayHello(): string;
 };
-
 class Teacher {
 	constructor(firstName: string | number, lastName: string, subject: string) {
 		this.firstName = firstName;
-		...
+		{...}
 	}
 }
 ```
@@ -144,7 +142,84 @@ function getDog(id: number | string): Tpupy & { color: string } { // intersectio
 ## Uso
 
 ### MySql2
+- a função execute tem seus tipos pré definidos por generics
+- queries do tipo SELECT utilizam o tipo `RowDataPacket[]`, do tipo INSERT utilizam o `ResultSetHeader`
+- deve ser feita uma intersesão entre os tipos nativos do execute e outro tipo que represente o objeto retornado pela query
+```ts
+// connection.ts
+import mysql from 'mysql2/promise';
+import 'dotenv/config';
 
+export const connection = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  port: Number(process.env.MYSQL_PORT),
+  user: process.env.MYSQL_ROOT_USER,
+  password: process.env.MYSQL_ROOT_PASSWORD, 
+  database: process.env.MYSQL_DATABASE,
+  waitForConnections: true,
+  connectionLimit: 1,
+  queueLimit: 10,
+});
+
+// books.model.ts - funcional
+import { RowDataPacket, ResultSetHeader, ... } from 'mysql2/promise';
+{...}
+type Book {
+  id?: number;
+  title: string;
+  price: number;
+  author: string;
+  isbn: string;
+};
+// gelAll()
+const [books] = await connection.execute<(RowDataPacket & Book)[]>('select * from books'); // array da interseção entre RowDataPacket e Book
+// create()
+const [{ insertId }] = await connection.execute<ResultSetHeader>(
+  'INSERT INTO books (title, price, author, isbn) VALUES (?, ?, ?, ?)',
+  [title, price, author, isbn]
+);
+
+// books.model.ts - POO
+import { Pool, RowDataPacket } from 'mysql2/promise';
+import connection from './connection';
+
+interface Book {
+  id?: number,
+  title: string,
+  price: number,
+  author: string,
+  isbn: string,
+}
+class BookModel {
+  private connection: Pool;
+  constructor(){
+    this.connection = connection;
+  }
+  public async getAll(): Promise<Book[]> {
+    const [rows] = await this.connection.execute<(Book & RowDataPacket)[]>(
+      'SELECT * FROM books'
+    );
+    return rows;
+  }
+  public async create(book: Book): Promise<Book> {
+    const { title, price, author, isbn } = book;
+    const [{ insertId }] = await this.connection.execute<ResultSetHeader>(
+        'INSERT INTO books (title, price, author, isbn) VALUES (?, ?, ?, ?)',
+        [title, price, author, isbn]
+    );
+    return { id: insertId, ...book };
+  }
+}
+
+// main.ts
+import BookModel from './models/Book';
+const main = async () => {
+  const bookModel = new BookModel();
+  const books = await bookModel.getAll();
+  console.log(books);
+};
+main();
+```
 ### Sequelize
 
 ### Express
