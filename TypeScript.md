@@ -221,5 +221,102 @@ const main = async () => {
 main();
 ```
 ### Sequelize
+- a implementação do Sequelize em uma aplicação com TypeScript difere um pouco do método que utiliza o sequelize-cli para criação de modelos. Isso porque o sequelize-cli não dá suporte nativo na interpretação/criação de migrations, seeders e models em TS
+- altera `tsconfig.json`
+	- `"rootDir": "./src",`
+	- `"outDir": "./build",`
+- instalar dependencias
+	- `npm i dotenv@10.0 sequelize@6.3 @types/sequelize@4.28`
+	- `npm i -D mysql2@2.3 sequelize-cli@6.2`
+- gerar arquivo `.sequelizerc` na raiz
+	- os caminhos de config e models-path apontam para pasta raiz build ao invés de src. Isso é necessário já que o CLI não deve conseguir interpretar esses recursos caso sejam em *.ts, sendo portanto necessária a transpilação desses recursos para JS Vanilla 
+	- a pasta build é a pasta gerada após a transpilação da pasta src
+	- Os arquivos em seeders-path e migrations-path não sofrerão ação do TS, dado que são em *.js. Portanto podem ficar em src
+```ts
+const path = require('path');
 
+module.exports = {
+  'config': path.resolve(__dirname, 'build', 'database', 'config', 'database.js'),
+  'models-path': path.resolve(__dirname, 'build', 'database', 'models'),
+  'seeders-path': path.resolve(__dirname, 'src', 'database', 'seeders'),
+  'migrations-path': path.resolve(__dirname, 'src', 'database', 'migrations'),
+};
+```
+- inicializar o sequelize-cli
+	- `npx sequelize-cli init` 
+- criar as pastas faltantes `./src/database/config/` e `./src/database/models/`
+	- arquivos de configuração de modelos em TypeScript serão feitos manualmente
+- criar o arquivo de configuração do banco
+	- em `./src/database/config/database.ts`
+	- o tipo Options disponibiliza as opções de configuração de banco do sequelize
+	- a exportação do módulo deve ser feita utilizando somente export ao invés de export default ou export const, para que a transpilação o transforme em module.exports, o que é reconhecido pelo sequelize-cli
+	- caso o objeto process acuse erro, incluir na aplicação o pacote @types/node como dependência de desenvolvimento
+```ts
+import 'dotenv/config';
+import { Options } from 'sequelize';
+
+const config: Options = {
+  username: process.env.DB_USER || 'root',
+  password: process.env.DB_PASS || '',
+  database: process.env.DB_NAME || 'books_api',
+  host: process.env.DB_HOST || 'localhost',
+  port: Number(process.env.DB_PORT) || 3306,
+  dialect: 'mysql',
+};
+
+export = config;
+```
+- criar o script `db:reset`
+	- na chave scripts do `package.json`
+	- transpila o código / dropa o banco se existir / cria o banco / cria as tabelas / popula as tabelas
+	- `"db:reset": "npx -y tsc && npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all"`
+- instanciar o sequelize
+	- em `./src/database/models/index.ts`
+	- criar uma instancia do sequelize que faz o mesmo papel do arquivo padrão gerado pelo sequeize-cli em build/models/index.js. Em outras palavras ativa o Sequelize para ser usado
+```ts
+import { Sequelize } from 'sequelize';
+import * as config from '../config/database';
+
+export default new Sequelize(config);
+```
+- a partir daqui, resta fazer manualmente os modelos em TS. As migrations e seeders podem ser feitas com ajuda do sequelize-cli
+- definindo os models
+	- os modelos no Sequelize podem ser representados como classes que são a extensão (ou seja, que herdam atributos e métodos) da classe Model da mesma biblioteca. Para construirmos um modelo Sequelize em TypeScript devemos criar sua classe estendida, inicializá-la e depois exportá-la.
+	- os tipos podem ser importados do próprio sequelize
+	- como o modelo criado extende a classe Model do sequelize, as únicas propriedades que precisamos declarar nele são os seus atributos específicos. Entretanto, como eles são inicializados posteriormente por meio do método .init() do modelo criado, devemos afirmar que isso ocorrerá utilizando o prefixo declare (conforme a v6 do Sequelize)
+	- diferentemente do sequelize-cli, que gera um modelo que usa a função sequelize.define dentro de uma constante para definir os campos, aqui você só precisa inicializar o modelo com .init()
+	- adicionar dois campos especiais nos opcionais da definição do modelo (na segunda chave):
+		- `sequelize`, que deve receber a instância construída no index.ts;
+		- `modelName`, que deve fazer referência ao nome da tabela.
+```ts
+import { Model, INTEGER, STRING, DECIMAL } from 'sequelize';
+import db from '.'; // o arquivo aonde o sequelize foi instanciado (./index.ts)
+
+class Books extends Model {
+  declare id: number;
+  declare title: string;
+}
+
+Books.init({
+  id: {
+    type: INTEGER,
+    allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  title: {
+    type: STRING(30),
+    allowNull: false,
+  },
+}, {
+  sequelize: db,
+  modelName: 'books',
+  timestamps: false,
+});
+
+export default Books;
+```
+- associations
+	- 1:N
+	- N:N 
 ### Express
