@@ -279,7 +279,7 @@ import * as config from '../config/database';
 
 export default new Sequelize(config);
 ```
-- a partir daqui, resta fazer manualmente os modelos em TS. As migrations e seeders podem ser feitas com ajuda do sequelize-cli
+- a partir daqui, resta fazer manualmente os modelos em TS. As migrations e seeders podem ser feitas com ajuda do sequelize-cli e em js
 - definindo os models
 	- os modelos no Sequelize podem ser representados como classes que são a extensão (ou seja, que herdam atributos e métodos) da classe Model da mesma biblioteca. Para construirmos um modelo Sequelize em TypeScript devemos criar sua classe estendida, inicializá-la e depois exportá-la.
 	- os tipos podem ser importados do próprio sequelize
@@ -320,6 +320,34 @@ export default Books;
 	- 1:N
 		- as declarações de associations devem ficar concentradas em uma das entidades da relação 	
 ```ts
+// ex. migration
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('name', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER,
+      },
+      { ... }
+      bookId: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'books',
+          key: 'id',
+        },
+        field: 'book_id',
+      },
+    });
+  },
+  down: async (queryInterface) => {
+    await queryInterface.dropTable('comments');
+  },
+};
+
+// model genérico
 import { Model } from 'sequelize';
 import db from '.';
 import OtherModel from './OtherModel'; // Nossa outra entidade
