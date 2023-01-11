@@ -226,8 +226,8 @@ main();
 	- `"rootDir": "./src",`
 	- `"outDir": "./build",`
 - instalar dependencias
-	- `npm i dotenv@10.0 sequelize@6.3 @types/sequelize@4.28`
-	- `npm i -D mysql2@2.3 sequelize-cli@6.2`
+	- `npm i dotenv@10.0 sequelize@6.3`
+	- `npm i -D mysql2@2.3 sequelize-cli@6.2 @types/sequelize@4.28`
 - gerar arquivo `.sequelizerc` na raiz
 	- os caminhos de config e models-path apontam para pasta raiz build ao invés de src. Isso é necessário já que o CLI não deve conseguir interpretar esses recursos caso sejam em *.ts, sendo portanto necessária a transpilação desses recursos para JS Vanilla 
 	- a pasta build é a pasta gerada após a transpilação da pasta src
@@ -380,3 +380,82 @@ Example.hasMany(OtherModel, { foreignKey: 'campoD', as: 'campoEstrangeiroD' });
 export default Example;
 ```
 ### Express
+#### Ambiente
+##### instalação 
+	- `npm init -y` 
+	- `npm i -D typescript@4.4 @types/node@16.11 @types/express@4.17 ts-node-dev@1.1`
+	- `npm i express@4.17 express-async-errors@3.1 restify-errors@8.0 @types/restify-errors@4.3`
+	- Adicionar ao package.json os scripts 
+```json
+    "start": "npm run build && node ./dist/index.js",
+    "dev": "tsnd index.ts",
+    "build": "tsc"
+```
+
+#### Inicialização e execução
+- criar arquivo statusCodes.ts
+```ts
+// ./statusCodes.ts
+const statusCodes = {
+  OK: 200,
+  NOT_FOUND: 404,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  NO_CONTENT: 204,
+};
+
+export default statusCodes;
+```
+- criar arquivos index.ts e server.ts
+```ts
+// ./index.ts
+import express, { NextFunction, Request, Response } from 'express';
+import statusCodes from './statusCodes';
+import 'express-async-errors';
+
+const app = express();
+
+app.use(express.json());
+
+app.get('/', (_req: Request, res: Response) => {
+  res.status(statusCodes.OK).send('Express + TypeScript');
+});
+
+app.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
+  const { name, message, details } = err as any;
+  console.log(`name: ${name}`);
+
+  switch (name) {
+    case 'BadRequestError':
+      res.status(400).json({ message });
+      break;
+    case 'ValidationError':
+      res.status(400).json({ message: details[0].message });
+      break;
+    case 'NotFoundError':
+      res.status(404).json({ message });
+      break;
+    case 'ConflictError':
+      res.status(409).json({ message });
+      break;
+    default:
+      console.error(err);
+      res.sendStatus(500);
+  }
+
+  next();
+});
+
+export default app
+
+// ./server.ts
+import app from './app' 
+
+const PORT = 8000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running at http://localhost:${PORT}`);
+});
+```
+#### CRUD
