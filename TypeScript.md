@@ -6,7 +6,7 @@
 - global
         - `npm install -g typescript@4.4`
 - local
-        - `npm i -D @tsconfig/node16@1.0 @types/node@16.11 typescript@4.4 ts-node` 
+        - `npm i -D @tsconfig/node16@1.0 @types/node@16.11 typescript@4.4 ts-node-dev@1.1` 
 			- instala o módulo typeScript e seus tipos, além do pacote de configuração do tsconfig.json para transpilar em node versão 16
 
 ### Inicialização e execução
@@ -382,10 +382,9 @@ export default Example;
 ### Express
 #### Ambiente
 ##### instalação 
-	- `npm init -y` 
-	- `npm i -D typescript@4.4 @types/node@16.11 @types/express@4.17 ts-node-dev@1.1`
-	- `npm i express@4.17 express-async-errors@3.1 restify-errors@8.0 @types/restify-errors@4.3`
-	- Adicionar ao package.json os scripts 
+- `npm i -D @types/express@4.17`
+- `npm i express@4.17 express-async-errors@3.1 restify-errors@8.0 @types/restify-errors@4.3`
+- Adicionar ao package.json os scripts 
 ```json
     "start": "npm run build && node ./dist/index.js",
     "dev": "tsnd index.ts",
@@ -407,9 +406,9 @@ const statusCodes = {
 
 export default statusCodes;
 ```
-- criar arquivos index.ts e server.ts
+- criar arquivos app.ts e server.ts
 ```ts
-// ./index.ts
+// ./app.ts
 import express, { NextFunction, Request, Response } from 'express';
 import statusCodes from './statusCodes';
 import 'express-async-errors';
@@ -458,4 +457,120 @@ app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });
 ```
-#### CRUD
+#### CRUD - POO
+- model (mysql2)
+```ts
+import { Pool, ResultSetHeader } from 'mysql2/promise';
+import Book from '../interfaces/book.interface';
+
+export default class BookModel {
+  public connection: Pool;
+
+  constructor(connection: Pool) {
+    this.connection = connection;
+  }
+
+  public async getAll(): Promise<Book[]> {
+    const result = await this.connection.execute('SELECT * FROM books');
+    const [rows] = result;
+    return rows as Book[];
+  }
+
+  public async create(book: Book): Promise<Book> {
+    const { title, price, author, isbn } = book;
+    const result = await this.connection.execute<ResultSetHeader>(
+      'INSERT INTO books (title, price, author, isbn) VALUES (?, ?, ?, ?)',
+      [title, price, author, isbn],
+    );
+    const [dataInserted] = result;
+    const { insertId } = dataInserted;
+    return { id: insertId, ...book };
+  }
+}
+```
+- model (sequelize)
+```ts
+import { Model, INTEGER, STRING } from 'sequelize';
+import sequelize from '.'; 
+
+export default class UserModel extends Model {
+  declare id: number;
+  declare name: string;
+  declare email: string;
+  declare password: string;
+}
+
+UserModel.init({
+  id: {
+    type: INTEGER,
+    allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  name: {
+    type: STRING(50),
+    allowNull: false,
+  },
+  email: {
+    type: STRING(50),
+    allowNull: false,
+    unique: true
+  },
+  password: {
+    type: STRING(50),
+    allowNull: false,
+  }
+}, {
+  sequelize: sequelize,
+  modelName: 'User',
+  timestamps: false,
+});
+```
+- service
+```ts
+import UserModel from '../database/models/user.model';
+import User from '../interfaces/user.interface';
+
+export default class UserService {
+  user;
+  constructor() {
+    this.user = UserModel
+  }
+  
+  public async getAll(): Promise<User[]> {
+    const users = await this.user.findAll();
+    return users
+  }
+}
+```
+- controller
+```ts
+import { Request, Response } from 'express'
+import User from '../interfaces/user.interface';
+import UserService from '../services/user.service';
+import statusCodes from '../helpers/statusCode';
+
+export default class UserController {
+  user;
+  constructor() {
+    this.user = new UserService();
+  }
+
+  getUsers = async (req: Request, res: Response ): Promise<Response<{users: User[]}>> => {
+    const users = await this.user.getAll();
+    return res.status(statusCodes.OK).json({ users })
+  }
+}
+```
+- route
+```ts
+import { Router } from 'express'
+import UserController from '../controllers/user.controller';
+
+const userRoute = Router();
+const userController = new UserController();
+
+userRoute.get('/', userController.getUsers)
+
+export = userRoute;
+```
