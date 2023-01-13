@@ -338,6 +338,8 @@ module.exports = {
           model: 'books',
           key: 'id',
         },
+	onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
         field: 'book_id',
       },
     });
@@ -354,10 +356,26 @@ import OtherModel from './OtherModel'; // Nossa outra entidade
 
 class Example extends Model {
   // declare <campo>: <tipo>;
+  declare title: string;
+  declare authorId: number;
 }
 
 Example.init({
   // ... Campos
+  id: {
+    type: INTEGER,
+    allowNull: false,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+    authorId: {
+    type: INTEGER,
+    allowNull: false,
+    references: {
+      model: 'authors',
+      key: 'id',
+    },
+  },
 }, {
   // ... Outras configs
   underscored: true,
@@ -376,6 +394,10 @@ OtherModel.belongsTo(Example, { foreignKey: 'campoB', as: 'campoEstrangeiroB' })
 
 Example.hasMany(OtherModel, { foreignKey: 'campoC', as: 'campoEstrangeiroC' });
 Example.hasMany(OtherModel, { foreignKey: 'campoD', as: 'campoEstrangeiroD' });
+
+Book.belongsTo(Author, { foreignKey: 'id' });
+
+Author.hasMany(Book, { foreignKey: 'authorId' });
 
 export default Example;
 ```
