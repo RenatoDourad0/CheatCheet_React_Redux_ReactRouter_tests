@@ -552,6 +552,22 @@ const deleteUser = async (id) => {
   const user = await User.destroy({ where: { id } });
   return user;
 };
+	
+const findAuthor = async () => {
+	return Author.findAll({
+	    include: {
+	      model: Book, // inclui modelo com o qual tem associação
+	      attributes: [],
+	    },
+	    attributes: [
+	      ['name', 'author'], // renomeia atributo name como author
+	      [sequelize.fn('COUNT', sequelize.col('books.id')), 'totalBooks'], // sequelize fn. Funções de agregação
+	    ],
+	    group: 'authors.name', // agrupa resultado pela coluna name
+	    order: [['totalBooks', 'DESC']],
+	    raw: true, // retorna somente os dados da entidade. Sem informações do banco
+	  });
+};
 
 module.exports = {
   getAll,
