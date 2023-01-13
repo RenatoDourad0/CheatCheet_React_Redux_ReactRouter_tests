@@ -316,6 +316,7 @@ Books.init({
 
 export default Books;
 ```
+- controllers devem ser sempre arrow functions
 - associations
 	- 1:N
 		- as declarações de associations devem ficar concentradas em uma das entidades da relação 	
