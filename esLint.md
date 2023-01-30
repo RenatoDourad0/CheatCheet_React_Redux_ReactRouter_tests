@@ -16,7 +16,9 @@
 ```
 
 - express com ts
+ - `npm i -D @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint eslint-config-airbnb-typescript eslint-plugin-import` 
 ```json
+// .eslintrc.json
 {
   "root": true,
   "env": {
