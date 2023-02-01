@@ -8,14 +8,158 @@
   - 'um módulo deve ser responsável por somente um ator'
   - por módulo se entende classe / método
   - por ator se entende aquele que age sobre / utiliza o módulo
+  - resumo:
+    - O Single Responsibility Principle (SRP) é um princípio importante da programação orientada a objetos que diz que cada classe deve ter apenas uma responsabilidade única. Isso significa que cada classe deve ser projetada para realizar uma tarefa específica e não múltiplas tarefas.
+    - O objetivo do SRP é garantir que as classes sejam pequenas, simples e fáceis de entender, modificar e testar. Isso é alcançado dividindo as classes em pequenos módulos que realizam tarefas específicas. Desta forma, quando uma classe precisa ser modificada, só precisamos nos preocupar com as tarefas relacionadas a essa classe, em vez de ter que lidar com todas as tarefas relacionadas a várias classes diferentes. 
+    - Um exemplo de violação do SRP seria uma classe "Conta Bancaria" que tem responsabilidade de fazer operações de saque, depósito e consulta do extrato e também faz operações de transferencia. Nesse caso, a classe "Conta Bancaria" estaria violando o princípio SRP, pois ela estaria lidando com mais de uma responsabilidade. A solução seria criar classes diferentes para cada operação como "ContaBancariaSaque", "ContaBancariaDeposito", "ContaBancariaExtrato" e "ContaBancariaTransferencia".   
+```ts
+class ContaBancaria {
+    private saldo: number;
+    constructor(saldo: number) {
+        this.saldo = saldo;
+}
+    public sacar(valor: number) {
+        if (valor > this.saldo) {
+            throw new Error("Saldo insuficiente");
+        }
+        this.saldo -= valor;
+    }
+    public depositar(valor: number) {
+        this.saldo += valor;
+} }
+// E aqui está o exemplo da classe "ContaBancariaExtrato
+class ContaBancariaExtrato {
+    private contaBancaria: ContaBancaria;
+    constructor(contaBancaria: ContaBancaria) {
+        this.contaBancaria = contaBancaria;
+}
+    public consultarExtrato(): number {
+        return this.contaBancaria.saldo;
+} }
+```
 - open closed
-  - 'Você deve ser capaz de estender um comportamento de uma entidade sem modificar seus comportamentos já existentes' 
-- liskov substitution
-- interface segregation
+  - 'Você deve ser capaz de estender um comportamento de uma entidade sem modificar seus comportamentos já existentes'
+  - resumo:
+    - OCP (Open-Closed Principle) é um dos princípios SOLID que diz que "as classes devem ser abertas para extensão, mas fechadas para modificação". Isso significa que você deve ser capaz de adicionar novos comportamentos às classes sem modificar o código existente.
+    - Para seguir OCP, você deve:
+      - Isolar as partes do código que podem mudar e permitir que elas sejam extendidas sem afetar o resto do código.
+      - Criar interfaces ou classes abstratas para definir comportamentos comuns e permitir que as classes concretas implementem esses comportamentos de forma diferente.
+    - Para usar o metodo OCP é sempre necessario que uma interface seja criada?
+      - Não necessariamente. O uso de interfaces é uma maneira comum de seguir o princípio OCP, mas existem outras maneiras de implementar esse princípio também.
+      - Uma das maneiras de seguir OCP é criar classes abstratas que definem comportamentos comuns e permitem que as classes concretas implementem esses comportamentos de forma diferente. Outra maneira é usar herança para permitir que classes filhas estendam a funcionalidade de classes pais sem modificar o código existente.
+      - A ideia principal do OCP é permitir que novos comportamentos sejam adicionados às classes sem modificar o código existente. Então, é importante que a estrutura do código seja projetada de maneira flexível e escalável para permitir a extensão sem causar modificações no código existente
+```ts
+// interface
+interface Forma {
+    area(): number;
+}
+class Quadrado implements Forma {
+    private lado: number;
+constructor(lado: number) {
+    this.lado = lado;
+}
+public area(): number {
+    return this.lado * this.lado;
+    }
+}
+class Circulo implements Forma {
+    private raio: number;
+    private PI = 3.14;constructor(raio: number) {
+    this.raio = raio;
+}
+public area(): number {
+    return this.PI * this.raio * this.raio;
+    }
+}
+
+let quadrado = new Quadrado(5);
+console.log(quadrado.area()); // imprime 25
+let circulo = new Circulo(2);
+console.log(circulo.area()); // imprime 12.56
+let formas: Forma[] = [quadrado, circulo];
+formas.forEach(forma => {
+    console.log(forma.area());
+});
+
+// classe abstrata
+abstract class Veiculo {
+    protected velocidade: number;
+    constructor(velocidade: number) {
+        this.velocidade = velocidade;
+}
+    public acelerar(): void {
+        this.velocidade += 10;
+}
+    public abstract frear(): void;
+}
+class Carro extends Veiculo {
+    public frear(): void {
+        this.velocidade -= 10;
+    }
+
+}
+class Moto extends Veiculo {
+    public frear(): void {
+        this.velocidade -= 5;
+    }
+}
+
+let carro = new Carro(0);
+carro.acelerar();
+console.log(carro.velocidade); // prints 10
+carro.frear();
+console.log(carro.velocidade); // prints 0
+let moto = new Moto(0);
+moto.acelerar();
+console.log(moto.velocidade); // prints 10
+moto.frear();
+console.log(moto.velocidade); // prints 5
+```
 - dependecy invertion
   - Injeção de dependêcia: passar dependências como parâmetro ao invéz de hard coded na classe, dando mais flexibilidade ao código.
   - Inversão de dependencia: passar dependencia como parametro e tipar este parametro com uma abstração genérica o suficiente para que possa receber outras implementações daquela dependecia
   - 'Módulos de alto nível não devem depender de módulos de baixo nível (não se deve fazer hard code de dependecias em uma classe). Ambos devem depender de abstrações(dependem de interfaces genéricas que permitem implementar um grupo de dependecias especificas). Abstrações não devem depender de detalhes (interfaces genéricas não devem depender de detalhes de suas sub-classes). Detalhes devem depender de abstrações(um grupo de sub-classes devem depender da mesma interface genérica)' 
+  - resumo:
+    - Dependency Inversion Principle (DIP) é um dos princípios SOLID que diz que "dependa de abstrações, não de implementações". Isso significa que as classes devem depender de interfaces ou classes abstratas em vez de depender de classes concretas.
+    - A idéia principal por trás do DIP é que as classes devem ser projetadas de tal forma que elas não estejam fortemente acopladas a outras classes específicas. Ao invés disso, elas devem depender de interfaces ou classes abstratas que definem comportamentos comuns. Isso permite que as dependências sejam trocadas facilmente sem afetar o código existente. 
+    - No exemplo abaixo a classe "Servico" depende da interface "IRepositorio" e não de uma implementação específica. Isso significa que podemos passar qualquer implementação de IRepositorio para o construtor da classe Servico sem afetar o seu comportamento. Ao fazer isso, podemos trocar facilmente.
+    - Ao usar a classe Servico como intermediária, você está criando uma camada adicional de abstração que pode ser útil em vários cenários. A classe Servico é uma camada de serviço que pode conter lógica de negócios, validação ou qualquer outra lógica adicional além de apenas obter os dados. Dessa forma, se você precisar adicionar mais lógica no futuro, você só precisaria modificar a classe Servico e não as classes de repositório. Além disso, a classe Servico também pode ser reutilizada em várias partes do seu aplicativo, enquanto as classes de repositório só podem ser usadas em um único lugar.
+    - Outra vantagem é que, se você precisar trocar a forma como os dados são obtidos (por exemplo, mudar de um banco de dados para um repositório web), você só precisaria modificar a instanciação da classe Servico, sem precisar modificar o resto do código. Isso facilita a manutenção e escalabilidade do código.
+```ts
+interface IRepositorio {
+    obterDados(): string;
+}
+class RepositorioWeb implements IRepositorio {
+    obterDados(): string {
+return "Dados obtidos do repositório web";
+    }
+class RepositorioBancoDeDados implements IRepositorio {
+    obterDados(): string {
+        return "Dados obtidos do banco de dados";
+    }
+}
+class Servico {
+    private repositorio: IRepositorio;
+    constructor(repositorio: IRepositorio) {
+        this.repositorio = repositorio;
+}
+    public obterDados(): string {
+        //adicionando validação antes de obter os dados
+        if(this.validarUsuario()){
+            return this.repositorio.obterDados();
+        }
+        return "Usuário não autorizado";
+    }
+    //método de validação
+    private validarUsuario(): boolean {
+        // lógica de validação
+        return true;
+} }
+let servico = new Servico(new RepositorioBancoDeDados());
+console.log(servico.obterDados());
+```
+- liskov substitution
+- interface segregation
 
 ## Express e sequelize com POO
 - tsconfig
