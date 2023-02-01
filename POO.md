@@ -159,7 +159,9 @@ let servico = new Servico(new RepositorioBancoDeDados());
 console.log(servico.obterDados());
 ```
 - liskov substitution
+  - Objetos em um programa devem ser substituíveis por instâncias de seus subtipos, sem alterar a funcionalidade do programa.   
 - interface segregation
+  - Nenhum cliente deve ser forçado a depender de métodos que não utiliza   
 
 ## Express e sequelize com POO
 - tsconfig
