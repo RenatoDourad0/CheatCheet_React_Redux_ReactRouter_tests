@@ -324,7 +324,18 @@ export interface IService<T, U> extends
   IServiceReader<T>,
   IServiceWriter<T, U>,
   IServiceDelete {}
-  
+
+// Iplant
+export interface IPlant {
+  id: number,
+  breed: string,
+  needsSun: boolean,
+  origin: string,
+  size: number,
+  waterFrequency: number,
+}
+
+export type INewPlant = Omit<IPlant, 'id' | 'waterFrequency'>;
 // /index.ts
 export {
   IService,
@@ -408,7 +419,7 @@ import PlantValidate from './validations/PlantValidate';
 class PlantService implements IService<IPlant, INewPlant> {
   private readonly model: IModel<IPlant>;
 
-  constructor(model: IModel<IPlant>) {
+  constructor(model: IModel<IPlant> = new PlantModel()) {
     this.model = model;
   }
 
@@ -459,9 +470,9 @@ export default PlantService;
  import PlantService from '../services/PlantService';
 
  class PlantController {
-  private readonly service: PlantService;
+  private readonly service: Iservice<Iplant>;
 
-  constructor(service: PlantService) {
+  constructor(service: Iservice<Iplant> = new PlantService()) {
     this.service = service;
   }
 
