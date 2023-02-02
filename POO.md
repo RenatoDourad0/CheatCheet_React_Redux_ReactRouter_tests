@@ -164,6 +164,7 @@ console.log(servico.obterDados());
   - Nenhum cliente deve ser forçado a depender de métodos que não utiliza   
 
 ## Express e sequelize com POO
+- referencia projeto express / sequelize / mysql / js - https://github.com/RenatoDourad0/CheatSheets/blob/main/node(express_mysql2_sequelize_jwt_tests)).md
 - tsconfig
 ```json
 {
@@ -215,9 +216,38 @@ console.log(servico.obterDados());
   }
 }
 ```
-- dependecias (cors/ async-errors / joy / jwt / helmet / ...)
-  - `npm i -D @types/express @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint eslint-config-airbnb-typescript eslint-plugin-import ts-node typescript` 
-  - `npm i express express-async-errors joy json-web-token cors helmet`
+- sequelize
+```ts
+// src/config/config.js (sequelize)
+import 'dotenv/config';
+
+const config = {
+  username: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  host: process.env.MYSQL_HOST,
+  dialect: 'mysql',
+};
+
+module.exports = {
+  development: config,
+  test: config,
+  production: config,
+};
+	
+// /.sequelizerc
+import 'path';
+
+module.exports = {
+  'config': path.resolve(__dirname, 'build', 'config', 'config.js'),
+  'models-path': path.resolve(__dirname, 'build', 'database', 'models'),
+  'seeders-path': path.resolve(__dirname, 'build', 'database', 'seeders'),
+  'migrations-path': path.resolve(__dirname, 'build', 'database', 'migrations'),
+};
+```
+- dependecias (cors/ async-errors / morgan / bodyParser / dotenv / joy / jwt / bcrypt / helmet / sequelize)
+  - `npm i -D @types/express @types/node @types/sequelize @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint eslint-config-airbnb-typescript eslint-plugin-import ts-node nodemon typescript sequelize-cli sequelize-test-helpers mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0 sinon-chai nyc@15.1` 
+  - `npm i express express-async-errors joy jsonwebtoken bcrypt dotenv cors helmet morgan body-parser sequelize`
 - app
 - server
 ```ts
@@ -228,6 +258,8 @@ import errorMiddleware from './middlewares/errorMiddleware';
 import 'express-async-errors';
 import 'cors';
 import 'helment';
+import 'morgan';
+import 'body-parser';
 
 export default class App {
   public app: express.Express;
@@ -254,6 +286,9 @@ export default class App {
       next();
     };
     
+    this.app.use(bodyParser.json());
+    this.app.use(bodyParser.urlencoded({ extended: true }));
+    this.app.use(morgan('dev'));
     this.app.use(cors());
     this.app.use(helmet());
     this.app.use(express.json());
