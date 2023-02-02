@@ -217,15 +217,18 @@ console.log(servico.obterDados());
 }
 ```
 - sequelize
+	- após gerar arquivo de configuração rodar o comando `npx tsc && npx sequelize-cli init:models` para gerar o index.js dos models
 ```ts
-// src/config/config.js (sequelize)
+// src/database/config/config.js (sequelize)
 import 'dotenv/config';
+import { Options } from 'Sequelize';
 
-const config = {
+const config: Options = {
   username: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
   host: process.env.MYSQL_HOST,
+  port: Number(process.env.MYSQL_PORT),
   dialect: 'mysql',
 };
 
@@ -239,7 +242,7 @@ module.exports = {
 import 'path';
 
 module.exports = {
-  'config': path.resolve(__dirname, 'build', 'config', 'config.js'),
+  'config': path.resolve(__dirname, 'build', 'database', 'config', 'config.js'),
   'models-path': path.resolve(__dirname, 'build', 'database', 'models'),
   'seeders-path': path.resolve(__dirname, 'build', 'database', 'seeders'),
   'migrations-path': path.resolve(__dirname, 'build', 'database', 'migrations'),
@@ -643,3 +646,6 @@ export default Mysql2PlantModel;
 - /auth
 - ../tests
 - /database
+	- model sequelize
+	- migration sequelize
+	- seeder sequelize
