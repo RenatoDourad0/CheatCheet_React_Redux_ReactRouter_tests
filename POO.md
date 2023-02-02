@@ -344,6 +344,24 @@ const errorMiddleware: ErrorRequestHandler = (err, _req, res, _next) => {
 
 export default errorMiddleware;
 ```
+- /exceptions
+```ts
+// Httpexception.ts
+export default class HttpException extends Error {
+  constructor(public status: number, public message: string) {
+    super(message);
+  }
+}
+
+// NotFoundError.ts
+import HttpException from './HttpException';
+
+export default class NotFoundError extends HttpException {
+  constructor(message:string) {
+    super(404, message);
+  }
+}
+```
 - /interfaces
 ```ts
 // /Iservice.ts
