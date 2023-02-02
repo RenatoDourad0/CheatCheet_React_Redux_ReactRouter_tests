@@ -569,7 +569,79 @@ export default PlantService;
 ```
 - models
 ```ts
+// model com sequelize
+
+import { Model, INTEGER, BOOLEAN } from 'sequelize';
+import db from '.';
+import Team from './Team.model';
+
+class Match extends Model {
+  declare id: number;
+  declare homeTeamId: number;
+  declare homeTeamGoals: number;
+  declare awayTeamId: number;
+  declare awayTeamsGoals: number;
+  declare inProgress: boolean;
+}
+
+Match.init({
+  id: {
+    allowNull: false,
+    autoIncrement: true,
+    primaryKey: true,
+    type: INTEGER,
+  },
+  homeTeamId: {
+    field: 'home_team_id',
+    allowNull: false,
+    type: INTEGER,
+  },
+  homeTeamGoals: {
+    field: 'home_team_goals',
+    allowNull: false,
+    type: INTEGER,
+    references: {
+      model: 'Team',
+      key: 'id',
+    },
+  },
+  awayTeamId: {
+    field: 'away_team_id',
+    allowNull: false,
+    type: INTEGER,
+  },
+  awayTeamsGoals: {
+    field: 'away_team_goals',
+    allowNull: false,
+    type: INTEGER,
+    references: {
+      model: 'Team',
+      key: 'id',
+    },
+  },
+  inProgress: {
+    field: 'in_progress',
+    allowNull: false,
+    type: BOOLEAN,
+  },
+}, {
+  underscored: true,
+  sequelize: db,
+  modelName: 'Match',
+  timestamps: false,
+});
+
+Match.belongsTo(Team, { foreignKey: 'homeTeamId', as: 'id' });
+Match.belongsTo(Team, { foreignKey: 'awayTeamId', as: 'id' });
+
+Team.hasMany(Match, { foreignKey: 'id', as: 'homeTeamId' });
+Team.hasMany(Match, { foreignKey: 'id', as: 'awayTeamId' });
+
+export default Match;
+
+
 // model com mysql2
+
 import { RowDataPacket, ResultSetHeader, OkPacket } from 'mysql2';
 import connection from './connection';
 import { IModel } from './interfaces';
@@ -646,6 +718,99 @@ export default Mysql2PlantModel;
 - /auth
 - ../tests
 - /database
-	- model sequelize
+	- models/index sequelize
+```ts
+// substitui o comando o arquivo gerado pelo comando `npx sequelize-cli --init:models`porém de forma bem mais simplificada
+import { Sequelize } from 'sequelize';
+import * as config from '../config/database';
+
+const sequelize = new Sequelize(config)
+
+export default sequelize;
+
+```
 	- migration sequelize
+```ts
+'use strict';
+
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('matches', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER,
+      },
+      homeTeamId: {
+        field: 'home_team_id',
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'teams',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+      },
+      homeTeamGoals: {
+        field: 'home_team_goals',
+        allowNull: false,
+        type: Sequelize.INTEGER,
+      },
+      awayTeamId: {
+        field: 'away_team_id',
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'teams',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+      },
+      awayTeamsGoals: {
+        field: 'away_team_goals',
+        allowNull: false,
+        type: Sequelize.INTEGER,
+      },
+      inProgress: {
+        field: 'in_progress',
+        allowNull: false,
+        type: Sequelize.BOOLEAN,
+      }
+    });
+  },
+
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('matches');
+  }
+};
+```
 	- seeder sequelize
+```ts
+module.exports = {
+  up: async (queryInterface) => {
+    await queryInterface.bulkInsert('users', [
+      {
+        username: 'Admin',
+        role: 'admin',
+        email: 'admin@admin.com',
+        password: '$2a$08$xi.Hxk1czAO0nZR..B393u10aED0RQ1N3PAEXQ7HxtLjKPEZBu.PW',
+        // senha: 'secret_admin'
+      },
+      {
+        username: 'User',
+        role: 'user',
+        email: 'user@user.com',
+        password: '$2a$08$Y8Abi8jXvsXyqm.rmp0B.uQBA5qUz7T6Ghlg/CvVr/gLxYj5UAZVO',
+        // senha: 'secret_user'
+      },
+    ], {});
+  },
+
+  down: async (queryInterface) => {
+    await queryInterface.bulkDelete('users', null, {});
+  },
+};
+```
