@@ -250,7 +250,7 @@ module.exports = {
 ```
 - dependecias (cors/ async-errors / morgan / bodyParser / dotenv / joy / jwt / bcrypt / helmet / sequelize)
   - `npm i -D @types/express @types/node @types/sequelize @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint eslint-config-airbnb-typescript eslint-plugin-import ts-node nodemon typescript sequelize-cli sequelize-test-helpers mocha@10.0 chai@4.3 chai-http@4.3 sinon@14.0 sinon-chai nyc@15.1` 
-  - `npm i express express-async-errors joy jsonwebtoken bcrypt dotenv cors helmet morgan body-parser sequelize`
+  - `npm i express express-async-errors express-rate-limit joy jsonwebtoken bcrypt dotenv cors helmet morgan body-parser sequelize`
 - app
 - server
 ```ts
@@ -263,6 +263,14 @@ import 'cors';
 import 'helment';
 import 'morgan';
 import 'body-parser';
+import rateLimit from 'express-rate-limit';
+
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+})
 
 export default class App {
   public app: express.Express;
@@ -294,8 +302,9 @@ export default class App {
     this.app.use(morgan('dev'));
     this.app.use(cors());
     this.app.use(helmet());
-    this.app.use(express.json());
+//  this.app.use(express.json());
     this.app.use(accessControl);
+    this.app.use(limiter);
   }
 
   public start(PORT: string | number):void {
