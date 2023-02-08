@@ -138,7 +138,8 @@ db.inventory.updateOne(  // atualiza o primeiro elemento com o campo item igual 
 #### operadores de atualização
 - $set
   - altera o valor ou cria um campo específico
-  - ` { $set: { "details.make": "zzz" } }`
+  - pode alterar elementos aninhados e em um index de um array atravez de dot notation
+  - ` { $set: { "details.make": "zzz", "ratings.0.rating": 2 } }`
 - $mul
   - multiplica o valor de um campo por um número especificado, persistindo o resultado dessa operação sem a necessidade do operador $set. Casoo campos especificado não exista será criado com o valor zero do mesmo tipo do multiplicador
   - `{ $mul: { price: NumberDecimal("1.25"), qty: 2 } }` :. o valor original de price é multiplicado por 1.25 e o de qty por 2
@@ -171,8 +172,54 @@ db.inventory.updateOne(  // atualiza o primeiro elemento com o campo item igual 
 - $unset
   - remove um ou mais campos de um documento
   - `{ $unset: { <campo>: "" }`
+
 #### operadores de atualização de arrays
 - $push
-- $pop
-- $pull
+  - adiciona um valor ao final de um array. Se o campo não existir no documento, um novo array com o valor em um elemento será adicionado
+  - `{ $push: { <campo1>: <valor1>, ... } }` 
+  - modificadores:
+    - $each: Adiciona múltiplos valores a um array
+    - $slice:  Limita o número de elementos do array. Requer o uso do modificador $each
+    - $sort: Ordena os elementos do array. Requer o uso do modificador $each
+    - $position: Especifica a posição em que o elemento deve ser inserido no array. Também requer o modificador $each
+```
+db.supplies.updateOne(
+  { _id: 1 },
+  {
+    $push: {
+      items: {
+        $each: [
+          {
+            "name" : "notepad",
+            "price" : 35.29,
+            "quantity" : 2,
+          },
+          {
+            "name": "envelopes",
+            "price": 19.95,
+            "quantity": 8,
+          },
+          {
+            "name": "pens",
+            "price": 56.12,
+            "quantity": 5,
+          },
+        ],
+        $sort: { "quantity": -1 },
+        $slice: 2,
+      },
+    },
+  },
+  { upsert: true }, // modificador que permite atualizar os campos existentes ou inserir novos campos caso não existam
+);
+```
 - $addToSet
+  - utilizado quando você precisa garantir que os valores de um array não sejam duplicados. Ou seja, ele garante que apenas valores únicos estejam presentes no array, tratando o array como se fosse um conjunto
+  - `{ $addToSet: { <campo>: "camera"  } }`
+  - `{$addToSet:{<campo>:{$each: ["camera", "electronics", <valorN>]}}},` :. adiciona vários elemento ao campo
+- $pop
+  - uma maneira simples de remover o primeiro ou o último elemento de um array é utilizar o operador $pop. Passando o valor -1 ao operador $pop você removerá o primeiro elemento. Já ao passar o valor 1, você removerá o último elemento do array
+  - `{ $pop: { items: -1 }`
+- $pull
+  - remove de um array existente todos os elementos com um ou mais valores que atendam à condição especificada
+  - `{$pull: { items: { name: { $in: ["pens", "envelopes"] }}}}`
