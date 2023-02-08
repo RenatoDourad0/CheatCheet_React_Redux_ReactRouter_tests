@@ -20,9 +20,10 @@
   - definir o banco de dados a ser usado. Ficará acessivel na variavel `db`
 - createCollection
   - criar uma nova coleção no banco 
+- dropDatabase
+  - apagar um banco 
 - insertOne
   - o atributo `_id` é gerado automaticamente. Caso desejar substituir deve ser declarado na query com o valor desejado  
-- insertOne
 - insertMany
   - insere um array de documentos 
   - opções
@@ -40,47 +41,109 @@ db.movies.findOne(
 ```
 - limit
   - `db.collection.find(<query>).limit(<número>)` 
+  
 - skip
   - permite pular documentos antes de começar a executar a query. Recebe um numero. ex: `db.bios.find().skip(2)`
+  
 - sort
-- update
+  - `db.example.find().sort({ <atributo>: <valor (1 ou -1)> })`
+  - deve ser usado no retorno de um resultadode busca
+  - atributos com valor positivo (1) iram geram uma ordenação em ordem crescente ou alfabética. Atributos com valor negativo (-1) fazem o contrário
+  
+- updateOne
+  - altera apenas o primeiro documento que satisfaça o critério de filtro
+```
+db.inventory.updateOne(  // atualiza o primeiro elemento com o campo item igual a paper
+  { item: "paper" },     // e atualiza os valores das propriedades size.uom e status
+  { $set: { "size.uom": "cm", status: "P" } }
+);
+```
+- updateMany
+  - altera todos os documentos que satisfaçam o critério de filtro
+- deleteOne
+  - remove o primeiro documento que satisfaça a query
+  
+- deleteMany
+  - remove todos os documentos que satisfação a query 
+  
 - countDocuments
   - retorna o número de documentos de uma coleção, e também pode receber um critério de seleção para retornar apenas o número de documentos que atendam a esse critério  
+  
 - pretty
   - retorna os documentos com identação e quebra de linha (mais útil no shell) 
 
 ## operadores
-- sintaxe
-  - `{ <campo>: { <operador>: <valor> } }` 
-- comparação
-  - deve se ter atenção aos tipos dos dados na query de comparação e nos documentos sendo buscados pois dada a natureza não relacional do nosql documentos diferentes podem ter tipos diferentes para um mesmo atributo
-  - $gt: maior que (greater than)
-  - $gte: maior ou igual a
-  - $lt: menor que (less than)
-  - $lte: menor ou igual a
-  - $eq: igual a
-  - $ne: diferente de
-  - $in: pertence a um grupo (array)
-  - $nin: não pertence a um grupo
-- lógicos
+- sintaxe básica
+  - `{ <campo>: { <operador>: <valor> } }`
+  
+- operadores de comparação simples
+  - importante: deve se ter atenção aos tipos dos dados na query de comparação e nos documentos sendo buscados pois dada a natureza não relacional do nosql documentos diferentes podem ter tipos diferentes para um mesmo atributo
+  - $gt
+    - maior que (greater than)
+  - $gte
+    - maior ou igual a
+  - $lt
+    - menor que (less than)
+  - $lte
+    - menor ou igual a
+  - $eq
+    - igual a
+  - $ne
+    - diferente de
+  - $in
+    - pertence a um grupo (array)
+  - $nin
+    - não pertence a um grupo
+  
+- operadores lógicos
   - $and
+    - retorna os documentos nos quais todas as expressoões sejam verdadeiras 
+    - `{ $and: [{ <expression1> }, { <expression2> }, ... , { <expressionN> }] }`
   - $or
-- $not
-- $nor
-- $exists
-- $all
-- $elemMatch
-- $size
-- $expr
-- $regex
-- $mod
-- $set
-- $mul
-- $inc
-- $min e $max
-- $currentDate
-- $unset
-- $push
-- $pop
-- $pull
-- $addToSet
+    - retorna os documentos nos quais alguma das expressoões sejam verdadeiras 
+    - `{ $or: [{ <expression1> }, { <expression2> }, ... , { <expressionN> }] }`
+  - $not
+    - retorna os documentos nos quais a expressão seja falsa
+    - `{ campo: { $not: { <operador ou expressão> } } }`
+  - $nor
+    - retorna os documentos em que todas as expressões do array sejam falsas
+    - `{ $nor: [ { <expressão1> }, { <expressão2> }, ...  { <expressãoN> } ] }`
+  - $exists
+    - recebe um valor boleano e retorna os documentos que contenham o atributo em caso de verdadeiro ou os documentos que não contem o atributo em caso de falso     
+ 
+- operadores de consulta para arrays
+  - $all
+    - seleciona todos os documentos em que o valor do campo é um array que contenha todos os elementos especificados, independente de sua ordem ou da existencia de outros elementos além dos especificados
+    - similar ao and porém para buscar em arrays
+    - `db.inventory.find({ tags: { $all: ["red", "blank"] } });`
+  - $elemMatch
+    - seleciona os documentos que contêm um campo do tipo array com pelo menos um elemento que satisfaça todos os critérios de seleção especificados
+    - `{ campo: { $elemMatch: { $gte: 80, $lt: 85 } } }`
+  - $size
+    - seleciona documentos em que um array contenha um número de elementos especificado  
+    - `{ tags: { $size: 2 }`
+
+- operadores de consulta
+  - $expr
+    - permite que você utilize expressões de agregação e construa queries que comparem campos no mesmo documento 
+    - `{ $expr: { $gt: [ "$spent", "$budget" ] }}` 
+    - o $ deve ser utilizado para indicar que a string entre aspas referencia um campo
+  - $regex
+    - fornece os “poderes” das expressões regulares para seleção de strings  
+    - `{ sku: { $regex: /789$/ } }`
+  - $mod
+    - seleciona todos os documentos em que o valor do campo dividido por um divisor seja igual ao valor especificado (executa a operação matemática módulo)
+    - `{ qty: { $mod: [<divisor>, <resultado>] } }` ex: `{$mod : [4,0]}` :. campo / 4 = 0
+
+- operadores de atualização
+  - $set
+    - 
+  - $mul
+  - $inc
+  - $min e $max
+  - $currentDate
+  - $unset
+  - $push
+  - $pop
+  - $pull
+  - $addToSet
