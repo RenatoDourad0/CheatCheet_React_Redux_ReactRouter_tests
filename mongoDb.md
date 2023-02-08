@@ -73,77 +73,106 @@ db.inventory.updateOne(  // atualiza o primeiro elemento com o campo item igual 
   - retorna os documentos com identação e quebra de linha (mais útil no shell) 
 
 ## operadores
-- sintaxe básica
+#### sintaxe básica
   - `{ <campo>: { <operador>: <valor> } }`
   
-- operadores de comparação simples
-  - importante: deve se ter atenção aos tipos dos dados na query de comparação e nos documentos sendo buscados pois dada a natureza não relacional do nosql documentos diferentes podem ter tipos diferentes para um mesmo atributo
-  - $gt
-    - maior que (greater than)
-  - $gte
-    - maior ou igual a
-  - $lt
-    - menor que (less than)
-  - $lte
-    - menor ou igual a
-  - $eq
-    - igual a
-  - $ne
-    - diferente de
-  - $in
-    - pertence a um grupo (array)
-  - $nin
-    - não pertence a um grupo
-  
-- operadores lógicos
-  - $and
-    - retorna os documentos nos quais todas as expressoões sejam verdadeiras 
-    - `{ $and: [{ <expression1> }, { <expression2> }, ... , { <expressionN> }] }`
-  - $or
-    - retorna os documentos nos quais alguma das expressoões sejam verdadeiras 
-    - `{ $or: [{ <expression1> }, { <expression2> }, ... , { <expressionN> }] }`
-  - $not
-    - retorna os documentos nos quais a expressão seja falsa
-    - `{ campo: { $not: { <operador ou expressão> } } }`
-  - $nor
-    - retorna os documentos em que todas as expressões do array sejam falsas
-    - `{ $nor: [ { <expressão1> }, { <expressão2> }, ...  { <expressãoN> } ] }`
-  - $exists
-    - recebe um valor boleano e retorna os documentos que contenham o atributo em caso de verdadeiro ou os documentos que não contem o atributo em caso de falso     
+#### operadores de comparação simples
+- importante: deve se ter atenção aos tipos dos dados na query de comparação e nos documentos sendo buscados pois dada a natureza não relacional do nosql documentos diferentes podem ter tipos diferentes para um mesmo atributo
+- $gt
+  - maior que (greater than)
+- $gte
+  - maior ou igual a
+- $lt
+  - menor que (less than)
+- $lte
+  - menor ou igual a
+- $eq
+  - igual a
+- $ne
+  - diferente de
+- $in
+  - pertence a um grupo (array)
+- $nin
+  - não pertence a um grupo
+
+#### operadores lógicos
+- $and
+  - retorna os documentos nos quais todas as expressoões sejam verdadeiras 
+  - `{ $and: [{ <expression1> }, { <expression2> }, ... , { <expressionN> }] }`
+- $or
+  - retorna os documentos nos quais alguma das expressoões sejam verdadeiras 
+  - `{ $or: [{ <expression1> }, { <expression2> }, ... , { <expressionN> }] }`
+- $not
+  - retorna os documentos nos quais a expressão seja falsa
+  - `{ campo: { $not: { <operador ou expressão> } } }`
+- $nor
+  - retorna os documentos em que todas as expressões do array sejam falsas
+  - `{ $nor: [ { <expressão1> }, { <expressão2> }, ...  { <expressãoN> } ] }`
+- $exists
+  - recebe um valor boleano e retorna os documentos que contenham o atributo em caso de verdadeiro ou os documentos que não contem o atributo em caso de falso     
  
-- operadores de consulta para arrays
-  - $all
-    - seleciona todos os documentos em que o valor do campo é um array que contenha todos os elementos especificados, independente de sua ordem ou da existencia de outros elementos além dos especificados
-    - similar ao and porém para buscar em arrays
-    - `db.inventory.find({ tags: { $all: ["red", "blank"] } });`
-  - $elemMatch
-    - seleciona os documentos que contêm um campo do tipo array com pelo menos um elemento que satisfaça todos os critérios de seleção especificados
-    - `{ campo: { $elemMatch: { $gte: 80, $lt: 85 } } }`
-  - $size
-    - seleciona documentos em que um array contenha um número de elementos especificado  
-    - `{ tags: { $size: 2 }`
+#### operadores de consulta para arrays
+- $all
+  - seleciona todos os documentos em que o valor do campo é um array que contenha todos os elementos especificados, independente de sua ordem ou da existencia de outros elementos além dos especificados
+  - similar ao and porém para buscar em arrays
+  - `db.inventory.find({ tags: { $all: ["red", "blank"] } });`
+- $elemMatch
+  - seleciona os documentos que contêm um campo do tipo array com pelo menos um elemento que satisfaça todos os critérios de seleção especificados
+  - `{ campo: { $elemMatch: { $gte: 80, $lt: 85 } } }`
+- $size
+  - seleciona documentos em que um array contenha um número de elementos especificado  
+  - `{ tags: { $size: 2 }`
 
-- operadores de consulta
-  - $expr
-    - permite que você utilize expressões de agregação e construa queries que comparem campos no mesmo documento 
-    - `{ $expr: { $gt: [ "$spent", "$budget" ] }}` 
-    - o $ deve ser utilizado para indicar que a string entre aspas referencia um campo
-  - $regex
-    - fornece os “poderes” das expressões regulares para seleção de strings  
-    - `{ sku: { $regex: /789$/ } }`
-  - $mod
-    - seleciona todos os documentos em que o valor do campo dividido por um divisor seja igual ao valor especificado (executa a operação matemática módulo)
-    - `{ qty: { $mod: [<divisor>, <resultado>] } }` ex: `{$mod : [4,0]}` :. campo / 4 = 0
+####  operadores de consulta
+- $expr
+  - permite que você utilize expressões de agregação e construa queries que comparem campos no mesmo documento 
+  - `{ $expr: { $gt: [ "$spent", "$budget" ] }}` 
+  - o $ deve ser utilizado para indicar que a string entre aspas referencia um campo
+- $regex
+  - fornece os “poderes” das expressões regulares para seleção de strings  
+  - `{ sku: { $regex: /789$/ } }`
+- $mod
+  - seleciona todos os documentos em que o valor do campo dividido por um divisor seja igual ao valor especificado (executa a operação matemática módulo)
+  - `{ qty: { $mod: [<divisor>, <resultado>] } }` ex: `{$mod : [4,0]}` :. campo / 4 = 0
 
-- operadores de atualização
-  - $set
-    - 
-  - $mul
-  - $inc
-  - $min e $max
-  - $currentDate
-  - $unset
-  - $push
-  - $pop
-  - $pull
-  - $addToSet
+#### operadores de atualização
+- $set
+  - altera o valor ou cria um campo específico
+  - ` { $set: { "details.make": "zzz" } }`
+- $mul
+  - multiplica o valor de um campo por um número especificado, persistindo o resultado dessa operação sem a necessidade do operador $set. Casoo campos especificado não exista será criado com o valor zero do mesmo tipo do multiplicador
+  - `{ $mul: { price: NumberDecimal("1.25"), qty: 2 } }` :. o valor original de price é multiplicado por 1.25 e o de qty por 2
+- $inc
+  - incrementar ou decrementar valores em um campo específico. Permite fazer operações sem antes buscar pelos valores antigos do campo 
+  - `{ $inc: { quantity: -2, "metrics.orders": 1 } }`   
+- $min
+  - Altera o valor do campo atual para o valor passado pelo método se o valor passado pelo método for menor do que o valor do campo atual
+  - o mesmo operador limita a busca e altera os valores do campo
+- $max
+  - Altera o valor do campo atual para o valor passado pelo método se o valor passado pelo método for maior do que o valor do campo atual
+  - `{ $max: { campo: 75 } }`
+- $currentDate
+  - atribui ao valor de um campo a data corrente, utilizando um tipo Date ou timestamp. Se você não especificar o tipo, por padrão, o MongoDB atribui o valor do tipo Date 
+  - a especificação do tipo pode ser um valor boleano (true para tipo Date) ou um objeto com a chave $type de valor 'date'ou 'timestamp'
+  - `{ $currentDate: { <campo>: <typeSpecification>, ... } }`
+```
+{ $currentDate: {
+      lastModified: true,
+      "cancellation.date": { $type: "timestamp" }
+    }, $set: {
+      "cancellation.reason": "user request",
+      status: "D"
+    }
+  }
+```
+- $rename
+  - recebe um documento contendo o nome atual do campo e o novo nome. Pode ser utilizado com os métodos updateOne() ou updateMany(), e também pode receber um critério de seleção de documentos
+  - `{ $rename: {<nome do campos antigo>: "novo nome"}}` 
+- $unset
+  - remove um ou mais campos de um documento
+  - `{ $unset: { <campo>: "" }`
+#### operadores de atualização de arrays
+- $push
+- $pop
+- $pull
+- $addToSet
