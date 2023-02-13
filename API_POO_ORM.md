@@ -823,7 +823,7 @@ export default class Authentication {
   }
 }
 ```
-- ../tests
+- ../tests/integration
 ```ts
 import * as sinon from 'sinon';
 import * as chai from 'chai';
@@ -861,6 +861,9 @@ describe('Seu teste', () => {
   it('...', async () => {
     chaiHttpResponse = await chai
        .request(app)
+       .get()
+       // .post().send(<payload>)
+       // .set(<field>, <value>) headers
        ...
 
     expect(...)
@@ -870,6 +873,30 @@ describe('Seu teste', () => {
     expect(false).to.be.eq(true);
   });
 });
+```
+- /tests/unit
+```ts
+  it('Deveria lançar uma exceção quando a key é inválida', async function () {
+    const paymentInput: IPayment = {
+      payByPerson: 'Jobs',
+      payToPerson: 'Wozniak',
+      amount: 50000,
+      key: '858.898.670-16XX',
+    };
+
+    sinon.stub(Model, 'create').resolves({});
+
+    try {
+      const service = new TransferService();
+      await service.transfer(paymentInput);
+    } catch (error) {
+      expect((error as Error).message).to.be.equal('Invalid Key!');
+    }
+  });
+
+  afterEach(function () {
+    sinon.restore();
+  });
 ```
 - /database
   - models/index (sequelize)
