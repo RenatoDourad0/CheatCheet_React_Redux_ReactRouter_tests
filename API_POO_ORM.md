@@ -3,6 +3,16 @@
 ## Diagramas UML
 - diagrama de casos de uso
 
+## POO
+- abstração
+	- também chamada de interface ou template. Muitos simplificam sua explicação como sendo uma espécie de mistura de encapsulamento e polimorfismo. A ideia principal é representar um objeto de forma abstrata, que seja obrigatoriamente herdado por outras classes
+- encapsulamento
+	-  é a capacidade que determinado método ou atributo de um objeto tem de se manter invisível. Garante uma camada extra de proteção para a aplicação, pois os detalhes de implementação não são revelados 
+- herança
+	- a classe-filha herda as características da classe-mãe. Isso é bastante útil para um reaproveitamento de código 
+- polimorfismo
+	- um mesmo método pode ser utilizado em diferentes objetos, de diferentes classes. Ou seja, métodos de mesma assinatura com implementações diferentes
+
 ## SOLID
 - Sigle responsability
   - 'um módulo deve ser responsável por somente um ator'
