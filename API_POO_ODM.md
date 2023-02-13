@@ -16,8 +16,8 @@
 - ODM = object document mapping
 - consiste em uma implementação de ODM para aplicações desenvolvidas em Node.Js, com vistas a remover a complexidade na interação com o MongoDB. Para isso, são definidos Schemas e Models para cada Collection no banco de dados
 - exemplo
-  - definir do formato do domínio (interface)
-  - criar classe do domínio
+  - definir o formato do domínio (interface) - formato de entrada dos dados da entidade (não inclui id)
+  - criar classe do domínio - formato de saída/manipulação da entidade dentro da aplicação (com id e acesso a todos os atributos)
 ```ts
 // src/Interfaces/IPayment.ts
 
