@@ -743,9 +743,136 @@ class Mysql2PlantModel implements IModel<IPlant> {
 export default Mysql2PlantModel;
 ```
 - /auth
+```ts
+// auth/jwtAuth.ts
+import 'dotenv/config';
+import { sign, verify, SignOptions, JwtPayload } from 'jsonwebtoken';
+import * as bcrypt from 'bcryptjs';
+import { BadRequestError, UnauthorizedError, HttpException } from '../errors';
+import { IAuthentication } from '../interfaces';
+import User from '../database/models/User.model';
+
+type jwtReturn = (JwtPayload & { id: number });
+
+const UnouthorizedErrorMessage = 'Incorrect email or password';
+
+export default class JwtAuth implements IAuthentication {
+  private isBodyValid = (email: string, password: string) => email && password;
+
+  private secret = process.env.JWT_SECRET || 'seusecretdetoken';
+
+  async authenticate(email: string, password: string): Promise<(string | HttpException)> {
+    if (!this.isBodyValid(email, password)) {
+      throw new BadRequestError('All fields must be filled');
+    }
+    const user = await User.findOne({ where: { email } });
+    if (!user || !bcrypt.compareSync(password, user.dataValues.password)) {
+      throw new UnauthorizedError(UnouthorizedErrorMessage);
+    }
+    const { id, username, role, email: dbMail } = user.dataValues;
+    const jwtConfig:SignOptions = { expiresIn: '7d', algorithm: 'HS256' };
+    const token = sign({ id, username, role, dbMail }, this.secret, jwtConfig);
+    return token;
+  }
+
+  async validate(token: string): Promise<(User | HttpException)> {
+    if (token.length === 0) {
+      throw new BadRequestError('All fields must be filled');
+    }
+    let decoded;
+    try {
+      decoded = verify(token, this.secret) as jwtReturn;
+    } catch (error) {
+      throw new UnauthorizedError(UnouthorizedErrorMessage);
+    }
+    const user = await User.findByPk(decoded.id) as User;
+    if (!user || user.dataValues.email !== decoded.dbMail) {
+      throw new UnauthorizedError(UnouthorizedErrorMessage);
+    }
+    return user.dataValues;
+  }
+}
+
+// middlewares/authentication.ts
+import { NextFunction, Request, Response } from 'express';
+import { IAuthentication } from '../interfaces';
+import JwtAuth from '../auth/JwtAuth';
+
+export default class Authentication {
+  constructor(private auth: IAuthentication = new JwtAuth()) {}
+
+  public async authenticate(req: Request, res:Response, next: NextFunction) {
+    try {
+      const { email, password } = req.body;
+      const token = await this.auth.authenticate(email, password);
+      return res.status(200).json({ token });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async validate(req: Request, res:Response, next: NextFunction) {
+    try {
+      const token = req.header('Authorization') || '';
+      const user = await this.auth.validate(token);
+      req.body.user = user;
+      return next();
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+```
 - ../tests
+```ts
+import * as sinon from 'sinon';
+import * as chai from 'chai';
+@ts-ignore
+import chaiHttp = require('chai-http');
+
+import { app } from '../app';
+import Example from '../database/models/ExampleModel';
+
+import { Response } from 'superagent';
+
+chai.use(chaiHttp);
+
+const { expect } = chai;
+
+describe('Seu teste', () => {
+  /**
+   * Exemplo do uso de stubs com tipos
+   */
+
+  let chaiHttpResponse: Response;
+
+  before(async () => {
+    sinon
+      .stub(Example, "findOne")
+      .resolves({
+        ...<Seu mock>
+      } as Example);
+  });
+
+  after(()=>{
+    (Example.findOne as sinon.SinonStub).restore();
+  })
+
+  it('...', async () => {
+    chaiHttpResponse = await chai
+       .request(app)
+       ...
+
+    expect(...)
+  });
+
+  it('Seu sub-teste', () => {
+    expect(false).to.be.eq(true);
+  });
+});
+```
 - /database
-	- models/index sequelize
+  - models/index (sequelize)
 ```ts
 // substitui o comando o arquivo gerado pelo comando `npx sequelize-cli --init:models`porém de forma bem mais simplificada
 import { Sequelize } from 'sequelize';
@@ -756,7 +883,7 @@ const sequelize = new Sequelize(config)
 export default sequelize;
 
 ```
-	- migration sequelize
+- migration sequelize
 ```ts
 'use strict';
 
@@ -814,7 +941,7 @@ module.exports = {
   }
 };
 ```
-	- seeder sequelize
+- seeder sequelize
 ```ts
 module.exports = {
   up: async (queryInterface) => {
