@@ -19,129 +19,215 @@
   - definir o formato do domínio (interface) - formato de entrada dos dados da entidade (não inclui id)
   - criar classe do domínio - formato de saída/manipulação da entidade dentro da aplicação (com id e acesso a todos os atributos)
 ```ts
-// src/Interfaces/IPayment.ts
+// src/Interfaces/IKey.ts
 
-interface IPayment {
-  id?: string
-  payByPerson: string;
-  payToPerson: string;
-  amount: number;
-  key: string;
+interface IKey { // representa o formato da abstração 'chave'
+  id?: string;
+  value: string;
+  owner: string;
+  type: string;
 }
 
-export default IPayment;
+export default IKey;
 
-// src/Domain/Payment.ts
+// src/Interfaces/IValid.ts
 
-class Payment implements IPayment {
-  private id: string | undefined; // undefined se os dados não estiverem no banco (Ex: antes do cadastro)
-  private payByPerson: string;
-  private payToPerson: string;
-  private amount: number;
-  private key: string;
+interface IValid { // representa uma propriedade que 'chaves' concretas devem ter mas que não existe na abstração base 'chave'
+  isValid(value: string): boolean;
+}
+ 
+export default IValid;
+
+// src/utils/KeyTypes.ts
+
+enum KeyTypes { // enum que representa um mapa dos valores da propriedade tipo da chave
+  CPF = 'cpf',
+  PHONE_NUMBER = 'phonenumber',
+  MAIL = 'mail',
+}
+
+export default KeyTypes;
+
+// src/Domain/Key/Key.ts
+
+class Key { // representa a abstração 'chave' genérica com acesso a todos os métodos e atributos
+  private value: string;
+  private owner: string;
+  private type: string;
+  private id: string | undefined;
 
   constructor(
-    payByPerson: string,
-    payToPerson: string,
-    amount: number,
-    key: string,
+    value: string,
+    owner: string,
+    type: string,
     id: string | undefined,
   ) {
-    this.id = id;
-    this.payByPerson = payByPerson;
-    this.payToPerson = payToPerson;
-    this.amount = amount;
-    this.key = key;
-  }
-
-  public setId(id: string) {
+    this.value = value;
+    this.owner = owner;
+    this.type = type;
     this.id = id;
   }
 
-  public getId() {
-    return this.id;
+  public getValue() {
+    return this.value;
+  }
+
+  public setValue(value: string) {
+    this.value = value;
   }
   
   { ... }
   
-  public setKey(key: string) {
-    this.key = key;
+  public getType() {
+    return this.type;
   }
 
-  public getKey() {
-    return this.key;
+  public setType(type: string) {
+    this.type = type;
   }
 }
 
-export default Payment;
+export default Key;
+
+// src/Domain/Key/CPF.ts
+
+class CPF implements IKey, IValid { //representa uma 'chave' concreta
+  readonly value: string;
+  readonly owner: string;
+  readonly type: string;
+
+  constructor(value: string, owner: string) {
+    if (!this.isValid(value)) throw Error('Invalid Key');
+    this.value = value;
+    this.owner = owner;
+    this.type = KeyTypes.CPF;
+  }
+
+  isValid(value: string): boolean {
+    const regex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+    return regex.test(value);
+  }
+}
+
+export default CPF;
+
+// src/Domain/Key/KeyFactory.ts
+
+class KeyFactory { // desing pattern para criação de instancias de classes diferentes que compartilham da mesma estrutura
+  public static create(key: IKey): IKey & IValid { // classes diferentes são instanciadas mas todas retornam o mesmo tipo 
+    if (key.type === KeyTypes.CPF) {
+      return new CPF(key.value, key.owner);
+    }
+    if (key.type === KeyTypes.PHONE_NUMBER) {
+      return new PhoneNumber(key.value, key.owner);
+    }
+    if (key.type === KeyTypes.MAIL) {
+      return new Mail(key.value, key.owner);
+    }
+    throw new Error('Invalid Key Type!');
+  }
+}
+
+export default KeyFactory;
 ```
   - elaborar o primeiro serviço baseado no domínio
 ```ts
-Copiar
-// src/Services/TransferService.ts
+// src/Services/KeyService.ts
 
-import Payment from '../Domain/Payment';
-
-class TransferService {
-  private isValidKey(key: string): boolean {
-    const cpfRegex = /^\d{3}.\d{3}.\d{3}-\d{2}$/;
-    return cpfRegex.test(key);
+class KeyService {
+  private createKeyDomain(key: IKey | null): Key | null { // retorna 'chave' no tipo definido na classe key (que é o tipo genérico usado por todas as 'chaves' concretas. Ex: cpf, telefone e email compartilham da estrutura da classe Key)
+    if (key) {
+      return new Key(
+        key.value,
+        key.owner,
+        key.type,
+        key.id,
+      ); 
+    }
+    return null;
   }
 
-  public async transfer(payment: IPayment) {
-    if (!this.isValidKey(payment.key)) throw new Error('Invalid Key!');
-    // Criar instância da Model de Payment usando Mongoose
-    // Inserir os dados no banco
-    // Retornar os dados com o id
+  public async register(data: IKey) {
+    const typedKey = KeyFactory.create(data); // retona 'chave' como entidade da classe concreta que a representa
+    const keyODM = new KeyODM(); // instancia o model
+    const newkey = await keyODM.create(typedKey); // persiste a 'chave' na db
+    return this.createKeyDomain(newkey); // retorna a nova 'chave' com base na interface genérica Key
+  }
+
+  public async getByValue(value: string) {
+    const keyODM = new KeyODM();
+    const key = await keyODM.findByValue(value);
+    return this.createKeyDomain(key);
   }
 }
 
-export default TransferService;
+export default KeyService;
 ```
 - criar model e schema para o domínio
 ```ts
-// src/Models/PaymentODM.ts
+// src/Models/AbstractODM.ts
 
 import {
+  isValidObjectId,
   Model,
-  Schema,
-  model,
   models,
+  Schema,
+  UpdateQuery,
+  model,
 } from 'mongoose';
-import IPayment from '../Interfaces/IPayment';
 
-class PaymentODM {
-  private schema: Schema; // Atributo para o "molde"
-  private model: Model<IPayment>; // Atributo para criar coleção e fornecer acesso ao banco
+abstract class AbstractODM<T> { // representa um model genérico e abstrado para interagir com o banco mongodb
+  protected model: Model<T>;  // o model do mongoose é criado com base na interface passada para o generico
+  protected schema: Schema;
+  protected modelName: string;
 
-  constructor() {
-    this.schema = new Schema<IPayment>({
-      payByPerson: { type: String, required: true },
-      payToPerson: { type: String, required: true },
-      amount: { type: Number, required: true },
-      key: { type: String, required: true },
-    });
-    this.model = models.Payment || model('Payment', this.schema); // Antes de criar o Schema, verificar se o schema já existe. Caso não exista, o schema será criado. 
+  constructor(schema: Schema, modelName: string) {
+    this.schema = schema;
+    this.modelName = modelName;
+    this.model = models[this.modelName] || model(this.modelName, this.schema); // aplica desing patter Singleton para garantir somente uma instancia do model possa existir (necessario para funcionamento do mongoose)
   }
 
-  public async create(payment: IPayment): Promise<IPayment> {
-    return this.model.create({ ...payment });
+  public async create(obj: T): Promise<T> {
+    return this.model.create({ ...obj });
   }
-  
-  public async update(id: string, obj: Partial<IPayment>):
-  Promise<IPayment | null> {
-    if (!isValidObjectId(id)) throw Error('Invalid Mongo id');
-    
+
+  public async update(_id: string, obj: Partial<T>): Promise<T | null> {
+    if (!isValidObjectId(_id)) throw Error('Invalid Mongo id');
+
     return this.model.findByIdAndUpdate(
-      { _id: id },
-      { ...obj } as UpdateQuery<IPayment>,
+      { _id },
+      { ...obj } as UpdateQuery<T>,
       { new: true },
-    );    
+    );
   }
 }
 
-export default PaymentODM;
+export default AbstractODM;
+
+// src/Models/KeyODM.ts
+
+import { Schema } from 'mongoose';
+import IKey from '../Interfaces/IKey';
+import AbstractODM from './AbstractODM';
+
+class KeyODM extends AbstractODM<IKey> { // define o genérico como a interface que representa o domínio
+  constructor() {
+    const schema = new Schema<IKey>({ // cria um schema do mongoose
+      value: { type: String, required: true },
+      owner: { type: String, required: true },
+      type: { type: String, required: true },
+    });
+    super(schema, 'Key'); // chama a classe abstrada que define o model que será utilizado 
+  }
+
+  public async findByValue(value: string): Promise<IKey | null> {
+    return this.model.findOne({ value });
+  }
+}
+
+export default KeyODM;
 ```
+
 - conexão ao servidor mongo
 ```ts
 // src/Models/Connection.ts
@@ -158,54 +244,7 @@ const connectToDatabase = (
 
 export default connectToDatabase;
 ```
-- implementar o model na camada service
-```ts
-// src/Services/TransferService.ts
 
-//import Payment from '../Domain/Payment';
-import IPayment from '../Interfaces/IPayment';
-import PaymentODM from '../Models/PaymentODM';
-
-  // class TransferService {
-    
-  // private isValidKey(key: string): boolean {
-  //   const cpfRegex = /^\d{3}.\d{3}.\d{3}-\d{2}$/;
-  //   return cpfRegex.test(key);
-  // }
-
-    private createPaymentDomain(payment: IPayment | null): Payment | null {
-    if (payment) {
-      return new Payment(
-        payment.payByPerson,
-        payment.payToPerson,
-        payment.amount,
-        payment.key,
-        payment.id,
-      );
-    }
-    return null;
-  }
-
-  // public async transfer(payment: IPayment) {
-    // if (!this.isValidKey(payment.key)) throw new Error('Invalid Key!');
-
-    // Criar instância da Model de Payment usando Mongoose
-    const paymentODM = new PaymentODM();
-    // Inserir os dados no banco
-    const newPayment = await paymentODM.create(payment);
-    // Retornar os dados com o id
-    return this.createPaymentDomain(newPayment);
-  // }
-  
-  public async undoTransfer(id: string, payment: IPayment) {
-    if (!this.isValidKey(payment.key)) throw new Error('Invalid Key!');
-    const paymentODM = new PaymentODM();
-    return paymentODM.update(id, payment);
-  }
-// }
-
-// export default TransferService;
-```
 - contruindo o controller
 ```ts
 import { NextFunction, Request, Response } from 'express';
@@ -258,6 +297,7 @@ class TransferController {
   
 export default TransferController;
 ```
+
 - middleware de erro
 ```ts
 // src/Middlewares/ErrorHandler.ts
@@ -278,6 +318,7 @@ class ErrorHandler {
 
 export default ErrorHandler;
 ```
+
 - definição de rotas
 ```ts
 // src/Routes/Routes.ts
@@ -299,6 +340,7 @@ routes.patch(
 
 export default routes;
 ```
+
 - app.ts
 ```ts
 // src/app.ts
@@ -314,6 +356,7 @@ app.use(ErrorHandler.handle);
 
 export default app;
 ```
+
 - server.ts
 ```ts
 // src/server.ts
