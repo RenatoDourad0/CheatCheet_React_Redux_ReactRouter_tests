@@ -16,8 +16,57 @@
 - ODM = object document mapping
 - consiste em uma implementação de ODM para aplicações desenvolvidas em Node.Js, com vistas a remover a complexidade na interação com o MongoDB. Para isso, são definidos Schemas e Models para cada Collection no banco de dados
 - exemplo
-  - definir o formato do domínio (interface) - formato de entrada dos dados da entidade (não inclui id)
-  - criar classe do domínio - formato de saída/manipulação da entidade dentro da aplicação (com id e acesso a todos os atributos)
+  - teste unitário do serviço de 'chave'
+```ts
+import { expect } from 'chai';
+import sinon from 'sinon';
+import { Model } from 'mongoose';
+import Key from '../../../src/Domain/Key/Key';
+import IKey from '../../../src/Interfaces/IKey';
+import KeyService from '../../../src/Services/KeyService';
+
+const RESULT_ERROR = 'Invalid Key';
+
+describe('Deveria validar e criar chaves', function () {
+  it('Criando uma chave de tipo CPF com SUCESSO', async function () {
+    const keyInput: IKey = {
+      value: '478.966.190-32',
+      owner: 'Jack C.',
+      type: 'cpf',
+    };
+    const keyOutput: Key = new Key(
+      '478.966.190-32',
+      'Jack C.',
+      'cpf',
+      '633ec9fa3df977e30e993492',
+    );
+    sinon.stub(Model, 'create').resolves(keyOutput);
+
+    const service = new KeyService();
+    const result = await service.register(keyInput);
+
+    expect(result).to.be.deep.equal(keyOutput);
+  });
+
+  it('Criando uma chave de tipo CPF inválida', async function () {
+    const keyInput: IKey = {
+      value: '478.966.190-32XX',
+      owner: 'Jack C.',
+      type: 'cpf',
+    };
+    sinon.stub(Model, 'create').resolves({});
+    
+    try {
+      const service = new KeyService();
+      await service.register(keyInput);
+    } catch (error) {
+      expect((error as Error).message).to.be.equal(RESULT_ERROR);
+    }
+  });
+});
+```
+  - definir o formato do domínio (interface) - formato de entrada dos dados da entidade (ex: não inclui id)
+  - criar classes do domínio - formato de saída/manipulação da entidade dentro da aplicação (ex: com id e acesso a todos os atributos)
 ```ts
 // src/Interfaces/IKey.ts
 
@@ -100,7 +149,7 @@ class CPF implements IKey, IValid { //representa uma 'chave' concreta
     if (!this.isValid(value)) throw Error('Invalid Key');
     this.value = value;
     this.owner = owner;
-    this.type = KeyTypes.CPF;
+    this.type = KeyTypes.CPF; // define o tipo como cpf para todas as entidades dessa classe
   }
 
   isValid(value: string): boolean {
