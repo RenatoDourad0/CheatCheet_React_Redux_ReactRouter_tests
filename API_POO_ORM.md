@@ -126,8 +126,8 @@ moto.frear();
 console.log(moto.velocidade); // prints 5
 ```
 - dependecy invertion
-  - Injeção de dependêcia: passar dependências como parâmetro ao invéz de hard coded na classe, dando mais flexibilidade ao código.
-  - Inversão de dependencia: passar dependencia como parametro e tipar este parametro com uma abstração genérica o suficiente para que possa receber outras implementações daquela dependecia
+  - Injeção de dependêcia: passar dependências como parâmetro ao invéz de hard coded na classe, dando mais flexibilidade ao código
+  - Inversão de dependencia: passar dependencia como parametro e tipar este parametro com uma abstração genérica o suficiente (interface) para que possa receber outras implementações daquela dependecia
   - 'Módulos de alto nível não devem depender de módulos de baixo nível (não se deve fazer hard code de dependecias em uma classe). Ambos devem depender de abstrações(dependem de interfaces genéricas que permitem implementar um grupo de dependecias especificas). Abstrações não devem depender de detalhes (interfaces genéricas não devem depender de detalhes de suas sub-classes). Detalhes devem depender de abstrações(um grupo de sub-classes devem depender da mesma interface genérica)' 
   - resumo:
     - Dependency Inversion Principle (DIP) é um dos princípios SOLID que diz que "dependa de abstrações, não de implementações". Isso significa que as classes devem depender de interfaces ou classes abstratas em vez de depender de classes concretas.
