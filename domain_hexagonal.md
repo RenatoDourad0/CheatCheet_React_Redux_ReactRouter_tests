@@ -25,7 +25,7 @@
 		- infra
 			- persistence (faz a conexão entre um repositório e uma tecnologia de banco de dados específica)
 			- controllers
-			- factories
+			- factories (instancia as camadas e injeta suas dependencias (controller / service / repository / persistence) para uso de uma entidade)
 			- middlewares
 				- errorMiddleware.ts 
 			- routes
