@@ -125,8 +125,9 @@ class UserUseCase {
 }
 
 export default UserUseCase;
-
-
+```
+- exemplo de infra da aplicação
+```ts
 // src/infra/persistence/user/MySqlUserPersistence.ts
 
 import { User } from '../../domain/entities/User';
@@ -184,5 +185,23 @@ class MySqlUserPersistence implements IUserPersistence {
 }
 
 export default MySqlUserPersistence;
+
+
+// src/infra/factories/user/UserFactory.ts
+
+import { User } from '../../domain/entities/User';
+import { IUserPersistence } from '../../domain/repository/IUserPersistence';
+import { UserRepository } from '../../domain/repository/UserRepository';
+import UserUseCase from '../../domain/usecase/UserService';
+import UserController from '../controllers/UserController';
+import MySqlUserPersistence from '../persistence/MySqlUserPersistence';
+
+// aonde se instancia as camadas de uma entidade para uso na aplicação
+
+const ipersitence: IUserPersistence = new MySqlUserPersistence() // principio de portas e adpatadores da arquitetutra hexagonal. A interface é uma porta (um formato) e a classe que a implementa um adptador específico para tecnologia mysql2
+const userRepository = new UserRepository(ipersitence)
+const usecase = new UserUseCase(userRepository)
+const controller = new UserController(usecase)
+
+export {controller}
 ```
-- exemplo de infra da aplicação
