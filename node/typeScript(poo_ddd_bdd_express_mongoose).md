@@ -2,6 +2,7 @@
 
 ## DDD
 - domain driven desing
+- o objetivo e desaclobar o código do core da aplicação de qualuqer tecnologia 
 - a primeira etapa na construção de aplicações orientadas a objetos é determinar quais são os objetos da regra de negócio, os seus atributos e suas funcionalidades (os domínios que a aplicação deve abranger). As primeiras classes da aplicação devem ser definidas sob o olhar das regras de negócio. Em outras palavras, não devemos iniciar a aplicação pensando nas classes do banco de dados ou de alguma tecnologia.
 - uma vez que as classes do domínio foram identificadas e desenvolvidas, pode-se seguir para as próximas etapas da construção. Ainda sob o olhar da regra de negócio, deve se iniciar a construção do serviço e construir as demais camadas à medida que forem necessárias para a nossa aplicação
 - as classes inicalmente não devem ter dependencias nem interfaces, sendo adicionadas a medida que necessário
