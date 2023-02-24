@@ -75,15 +75,18 @@ class UserRepository {
     constructor(private iPersistence: IUserPersistence) { } // inversão de dependencia com a interface que representa a persistence abstrata
     
     public register = async (entity: Omit<User, "id">): Promise<User> => { // usa a dependencia injetada para fazer as buscas de forma indireta
-        return await this.iPersistence.register(entity)
+    	const newUser = await this.iPersistence.register(entity);
+        return new User(newUser);
     }
 
     public login = async(entity: Pick<User, "email" | "password">) => {
-        return await this.iPersistence.login(entity)
+    	const token = await this.iPersistence.login(entity)
+        return token
     }
 
     public findUserByEmail = async(email: string) => {
-        return this.iPersistence.findUserByEmail(email)
+    	const user = await this.iPersistence.findUserByEmail(email);
+        return new User(user);
     }
 }
 
@@ -204,4 +207,75 @@ const usecase = new UserUseCase(userRepository)
 const controller = new UserController(usecase)
 
 export {controller}
+```
+- exemplo de testes unitários com BDD (ts-sinon e chaiAsPromised)
+```ts
+import { UserRepository } from "../../src/domain/repository/UserRepository"
+import { stubInterface } from "ts-sinon";
+import chaiAsPromised from 'chai-as-promised';
+import * as chai from 'chai'
+import sinon from 'sinon'
+import UserService from "../../src/domain/usecase/UserService";
+import { IUser } from "../../src/domain/entities/interfaces/IUser";
+import { User } from "../../src/domain/entities/User";
+import { IPersistence } from "../../src/domain/repository/IUserPersistence";
+
+chai.use(chaiAsPromised)
+const expect = chai.expect
+
+describe('BDD - Creating an User', () => {
+    it('BDD - Should create an User', async () => {
+        const user: Omit<User, "_id"> = {
+            name: "One",
+            email: '3452345@email.com',
+            password: 'asdf'
+        }
+
+        const userMock: User = {
+            _id: "5ce819935e539c343f141ece",
+            name: "One",
+            email: '3452345@email.com',
+            password: 'asdf'
+        }
+
+        const iPersistence = stubInterface<IPersistence>()
+        const userRepository = new UserRepository(iPersistence)
+        userRepository.create = sinon.stub().returns(userMock)
+
+        const usecase = new UserService(userRepository)
+        usecase.create = sinon.stub().returns(userMock)
+
+        const result = await usecase.create(user)
+
+        expect(result).to.be.equal(userMock)
+    })
+    sinon.restore()
+})
+```
+- exemplo de teste de integração (chaiAsPromised e superTest)
+```ts
+import chaiAsPromised from 'chai-as-promised';
+import * as chai from 'chai'
+import supertest from 'supertest'
+import app from '../../src/application/app'
+
+chai.use(chaiAsPromised)
+const expect = chai.expect
+
+describe('Testing POSTS/shots endpoint', () => {
+    it('respond with valid HTTP status code and description and message', async function (done) {
+
+      await supertest(app).post('/users').send({
+        name: 'John',
+        email: "email@email.com",
+        password: "R#@a89*"
+      })
+      .expect(201)
+      .then((response) => {
+        expect(response.status).to.be.equal(201)
+        done();
+      })
+      .catch(done)
+    })
+});
 ```
