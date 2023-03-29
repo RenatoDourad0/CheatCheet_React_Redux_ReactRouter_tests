@@ -8,8 +8,11 @@
   - validação da ativação `which python3`
   - desativação `deactivate`
 - pip
-  - `pip install ...`
-  - arquivo requirements.txt `pip freeze > requirements.txt`
+  - instalação 
+    - `pip install ...`
+    - arquivo requirements.txt `pip freeze > requirements.txt`
+  - desistalação
+    - `pip uninstall -y -r <(pip freeze)` 
 - env
   - para escrita usar arquivo .env normal 
   - para leitura importar módulo `os`
